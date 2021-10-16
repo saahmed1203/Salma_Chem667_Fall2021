@@ -67,7 +67,6 @@ Press 'n' to move on to the next image
 Press 's' to save image parameters
 Press '+' and '-' to change value by increments of 1.
 Hold shift while pressing '+' or '-' to change value by increments of 10. 
-Press 'q' to quit
 ''')
 
 def getAR(obj):
@@ -83,7 +82,7 @@ def getAR(obj):
 ######################### start detecting images #############################
 frameCount=0                        # keeps track of image number
 
-for i in range(3):
+for i in range(3): #asks for 3 images
     root = tk.Tk()
     root.withdraw()
     file = filedialog.askopenfilename()
@@ -148,7 +147,7 @@ for i in range(3):
     
 # program ending, test why
 if frameCount>0:            # normal ending, save detection file
-    print('Done with video. Saving feature file and exiting program')
+    print('Done with images. Saving feature file and exiting program')
     #np.savetxt(detectFileName,detectArray,header=detectHeader,delimiter=',')
     detectDF = pd.DataFrame(detectList, columns = detectHeader)
     detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
