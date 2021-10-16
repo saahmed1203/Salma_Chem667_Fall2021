@@ -20,6 +20,7 @@ stepValue=[1,5,5,1]         # define scaling of value, i.e., how much variable c
 keyState=0;                 # the current selected key
 keyBuf=np.zeros((256),dtype=int)    # where are the key values are stored (before scaling)
 run=1                       # set to 0 if 'q' is hit, to end program
+save=0
 
 # initialize key buffer with starting values
 for i in range(len(keypad)):
@@ -27,7 +28,7 @@ for i in range(len(keypad)):
 
 def processKey():
     
-    global keyState,run;
+    global keyState,run,save;
 
     key=cv2.waitKey(500) # value is delay in milliseconds to slow down video, must be > 0
     if key!=-1:
@@ -49,9 +50,12 @@ def processKey():
             keyValue[i]=keyBuf[ord(keypad[i])]
 
         # check to see if user wants to quit program by pressing 'q' key
-        if key==(ord('q')):
-            run=0           # variable program checks to see if user wants to quit program
-        if key==(ord('n')):
-            run = not run 
+        if key==(ord('q')): # variable program checks to see if user wants to quit program
+            pass
+            run=0           
+        if key==(ord('n')): #variable program that checks if user wants to move to the next image
+            run = not run
+        if key==(ord('s')): #variable program that checks if the user wants to save data
+            save = 1
     return(keyValue)        # return all the variable values, must be received in the proper order!
 
