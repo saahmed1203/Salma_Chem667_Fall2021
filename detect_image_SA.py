@@ -21,7 +21,7 @@ import keyboard_SA as k
 import tkinter as tk
 from tkinter import filedialog
 
-################################## GET IMAGE ############################
+################################## GET IMAGE #################################
 def getImage():
     #root = tk.Tk()
     #root.withdraw()
@@ -109,7 +109,7 @@ for i in range(3): #asks for 3 images
             objCount=0                                      # used as object ID in detectArray
             for objContour in contourList:                  # process all objects in the contourList
                 area = int(cv2.contourArea(objContour))     # find obj area        
-                if area>MIN_AREA:                           # only detect large objects       
+                if MAX_AREA >area>MIN_AREA:                           # only detect large objects       
                     PO = cv2.boundingRect(objContour)
                     x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
                     cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
