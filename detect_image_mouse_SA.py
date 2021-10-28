@@ -52,10 +52,11 @@ save = 0        # saves the objects detected to the csv file
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 def getImage():
-    root = tk.Tk()
-    root.withdraw()
+    #root = tk.Tk()
+    #root.withdraw()
     global file
-    file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
+    #file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
+    file = 'black_mountain.jpg'
     print('File chosen:',file)
     try:
         image = cv2.imread(file)
@@ -136,7 +137,8 @@ def doButton(): #determines functions of each button
     but=names[val]
     
     updateStatusDisplay()
-    mainDetection()
+    mainDetection() #detect script
+    print('But:',but,'Val:', val)
 
     increment=0
     if "-10" in but:
@@ -184,6 +186,7 @@ def doMouse(event,x,y,flags,param):
         mainDetection()
     return 
 
+'''
 def button_display(): #compiled the mainloop into a function
     global root_2
     root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
@@ -200,7 +203,7 @@ def button_display(): #compiled the mainloop into a function
     
     cv2.setMouseCallback('Full Image',doMouse)
     return
-
+'''
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
 WINDOW_SCALE=10         # window size increment
@@ -248,7 +251,8 @@ doc() #to print the user guide
 
 pic = getImage()
 
-root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
+#root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
+root_2 = tk.Tk()
 v = tk.IntVar()
 v.set(2)            # set choice to "+1 Frame"
 
