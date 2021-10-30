@@ -19,12 +19,9 @@ This script should detect objects for an image. In the future, it might be a mod
 added to the final detect script?
 """
 import cv2
-#import numpy as np
 import pandas as pd
-#import keyboard_SA as k 
 import tkinter as tk
 from tkinter import filedialog
-#import mouseIM_SA as mse 
 
 #################### CSV FILE NAME AND IMAGE RES ##############################
 detectFileName='detection_image_mouse.csv'      # output file containing object location, area, aspect ratio for each piceo frame
@@ -52,11 +49,11 @@ save = 0        # saves the objects detected to the csv file
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 def getImage():
-    #root = tk.Tk()
-    #root.withdraw()
+    root = tk.Tk()
+    root.withdraw()
     global file
-    #file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
-    file = 'black_mountain.jpg'
+    file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
+    #file = 'black_mountain.jpg'
     print('File chosen:',file)
     try:
         image = cv2.imread(file)
@@ -87,7 +84,7 @@ def mainDetection():
     
     # blur and threshold image
     #pic = getImage()
-    global pic, thresh
+    #global pic, thresh
     colorIM=cv2.resize(pic,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
     blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
@@ -131,14 +128,13 @@ def updateStatusDisplay(): #what goes on the status bar on top of the screen
 def doButton(): #determines functions of each button
     #global frameCount,displayScale,Z,CROP,getCenter,savePic,bkgState,bkgIM
     global thresh, MIN_AREA, MAX_AREA, skip_im, save
-
-    v = tk.IntVar()    
+   
     val=v.get()
     but=names[val]
     
     updateStatusDisplay()
     mainDetection() #detect script
-    print('But:',but,'Val:', val)
+    #print('But:',but,'Val:', val)
 
     increment=0
     if "-10" in but:
@@ -160,16 +156,19 @@ def doButton(): #determines functions of each button
         save = 1        # this flag saves the image parameters to the csv file
         
     elif 'Min Area' in but:
-        if not MIN_AREA <= 0: #so we don't get negative values
-            MIN_AREA+=increment
+        MIN_AREA+=increment
+        if MIN_AREA < 0: #so we don't get negative values
+            MIN_AREA = 0
         
     elif 'Max Area' in but:
-        if not MAX_AREA <= 0: #so we don't get negative values
-            MAX_AREA+=increment
+        MAX_AREA+=increment
+        if MAX_AREA < 0: #so we don't get negative values
+            MAX_AREA = 0
 
     elif 'Threshold' in but:
-        if not thresh <= 0: #so we don't get negative values
-            thresh+=increment
+        thresh+=increment
+        if thresh < 0: #so we don't get negative values
+            thresh = 0
     
     elif 'Exit' in but:
         root_2.destroy()
@@ -252,21 +251,22 @@ doc() #to print the user guide
 pic = getImage()
 
 #root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
-root_2 = tk.Tk()
+root_2 = tk.Toplevel()
 v = tk.IntVar()
-v.set(2)            # set choice to "+1 Frame"
+#v.set(2)            # set choice to "+1 Frame"
 
 root_2.title("Detection Functions")
 updateStatusDisplay()
 
 for val, txt in enumerate(names): #goes through each button (and what they'd look like)
-    print('Names:',names)
-    print('Val:',val)
-    print('Text:',txt)
+    #print('Names:',names)
+    #print('Val:',val)
+    #print('Text:',txt)
     r=int(1+val/4)
     c=int(val%4)
     tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
+mainDetection()
 cv2.setMouseCallback('Full Image',doMouse)
 print('End of loop')
 
