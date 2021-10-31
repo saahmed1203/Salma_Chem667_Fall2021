@@ -50,10 +50,9 @@ save = 0        # saves the objects detected to the csv file
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 def getImage():
-    global root
+    global root, file
     root = tk.Tk()
     root.withdraw()
-    global file
     file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
     #file = 'black_mountain.jpg'
     print('File chosen:',file)
@@ -152,7 +151,7 @@ def doButton(): #determines functions of each button
         pic = getImage()
         
     elif 'Save Parameters' in but:
-        save = 1        # this flag saves the image parameters to the csv file
+        save = 1        # this flag saves the objects to the csv file
         
     elif 'Min Area' in but:
         MIN_AREA+=increment
