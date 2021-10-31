@@ -7,7 +7,6 @@ Created on Tue Oct 12 12:18:53 2021
 
 v3.0
 Replaced the keyboard keys with mouse buttons
-(imported mouseIM_SA module to save space in script)
 
 v2.0
 The keyboard module was added to adjust parameters. Keys such as 'n' and 's' were
@@ -22,7 +21,9 @@ import cv2
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
+import warnings
 
+warnings.filterwarnings('ignore')
 #################### CSV FILE NAME AND IMAGE RES ##############################
 detectFileName='detection_image_mouse.csv'      # output file containing object location, area, aspect ratio for each piceo frame
 X_REZ=640; Y_REZ=480;               # viewing resolution
@@ -49,6 +50,7 @@ save = 0        # saves the objects detected to the csv file
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 def getImage():
+    global root
     root = tk.Tk()
     root.withdraw()
     global file
@@ -131,9 +133,6 @@ def doButton(): #determines functions of each button
    
     val=v.get()
     but=names[val]
-    
-    updateStatusDisplay()
-    mainDetection() #detect script
     #print('But:',but,'Val:', val)
 
     increment=0
@@ -171,9 +170,14 @@ def doButton(): #determines functions of each button
             thresh = 0
     
     elif 'Exit' in but:
-        root_2.destroy()
+        #root_2.destroy()
+        root_2.quit()
+        root.destroy()
+        #lambda: root_2.destroy()
         cv2.destroyAllWindows()
-
+    
+    updateStatusDisplay()
+    mainDetection() #detect script
     return
 
 ######################### creating the button display ########################
@@ -250,8 +254,7 @@ doc() #to print the user guide
 
 pic = getImage()
 
-#root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
-root_2 = tk.Toplevel()
+root_2 = tk.Toplevel() #root is for file manager, root_2 is for button grid
 v = tk.IntVar()
 #v.set(2)            # set choice to "+1 Frame"
 
@@ -271,7 +274,7 @@ cv2.setMouseCallback('Full Image',doMouse)
 print('End of loop')
 
 root_2.mainloop() #program will keep waiting until a button has been pressed
-print('Out of loop')
+#print('Out of loop')
 cv2.destroyAllWindows()     # clean up to end program
 
 print('Done with images.') #once the program ends
