@@ -170,6 +170,7 @@ def doButton(): #determines functions of each button
     
     elif 'Exit' in but:
         #root_2.destroy()
+        root_2.withdraw()
         root_2.quit()
         root.destroy()
         #lambda: root_2.destroy()
