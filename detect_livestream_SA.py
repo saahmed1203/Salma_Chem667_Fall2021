@@ -124,7 +124,7 @@ while(cap.isOpened() and k.run):    # process each frame until end of video or '
     
 # program ending, test why
 if frameCount>0:            # normal ending, save detection file
-    print('Done with livestream. Saving feature file and exiting program')
+    print('Done with livestream. Saving raw feature file and exiting program')
     np.savetxt(temp_name,detectArray,header=detectHeader,delimiter=',', fmt = '%d') #original csv
     #detectDF = pd.DataFrame(detectList, columns = detectHeader)
     #detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
