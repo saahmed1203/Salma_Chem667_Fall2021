@@ -86,6 +86,8 @@ def mainDetection():
     # blur and threshold image
     #pic = getImage()
     #global pic, thresh
+    if pic is None:
+        return
     colorIM=cv2.resize(pic,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
     blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
@@ -175,6 +177,7 @@ def doButton(): #determines functions of each button
         root.destroy()
         #lambda: root_2.destroy()
         cv2.destroyAllWindows()
+        return
     
     updateStatusDisplay()
     mainDetection() #detect script
@@ -220,7 +223,7 @@ def doc():
     print('Use Threshold to adjust the pixel threshold for detection')
     print('Click "Save Parameters" to save the objects detected into the csv file')
     print('Click "Next Image" to go to the next image')
-    print('Hit the X in the top right corner to end program')
+    print('Click "Exit" to end program')
     print('======================================================================')
     print()
 
@@ -254,7 +257,8 @@ doc() #to print the user guide
 
 pic = getImage()
 
-root_2 = tk.Toplevel() #root is for file manager, root_2 is for button grid
+#root is for file manager, root_2 is for button grid
+root_2 = tk.Toplevel() 
 v = tk.IntVar()
 #v.set(2)            # set choice to "+1 Frame"
 
