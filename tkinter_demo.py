@@ -28,6 +28,7 @@ def quitProgram():          # defining the exit button
 root = tk.Tk()              # this creates a widget
 root.withdraw()             # this hides the widget once it's created (but it's still active!)
 file = filedialog.askopenfile()     # creates the file manager window (using the root widget)
+print()
 print('File pathway:', file)
 
 #'''
@@ -39,7 +40,7 @@ second_root.geometry('300x200')     # window size
 #adding the buttons and labels to the toplevel window
 main_label = tk.Label(second_root, text = 'X Value = ' + str(x)) #the x value updates in the window
 button = tk.Button(second_root, text = 'Add +1', command = addFunction) #the "Add +1" button
-exit_button = tk.Button(second_root,text = 'Exit', command = quitProgram) #the "Exit" button
+exit_button = tk.Button(second_root,text = 'Exit', fg = 'coral',command = quitProgram) #the "Exit" button
 
 #to put all of the buttons and labels in the window
 main_label.pack()
