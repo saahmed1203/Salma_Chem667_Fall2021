@@ -192,6 +192,12 @@ def doMouse(event,x,y,flags,param):
         mainDetection()
     return 
 
+def auto_callback(): # the "demon" function that allows the script to run 
+    while run:
+        mainDetection()
+        root.after(30) #go to the next frame after 30 ms
+    return
+
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
 WINDOW_SCALE=10         # window size increment
@@ -258,6 +264,7 @@ for val, txt in enumerate(names): #goes through each button (and what they'd loo
 #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
 cv2.setMouseCallback('Full Image',doMouse)
 print('End of loop')
+
 mainDetection()
 root.mainloop() #program will keep waiting until a button has been pressed
 
