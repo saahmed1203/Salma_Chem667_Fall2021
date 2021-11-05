@@ -195,7 +195,7 @@ def doMouse(event,x,y,flags,param):
 def auto_callback(): # the "demon" function that allows the script to run 
     while run:
         mainDetection()
-        root.after(30) #go to the next frame after 30 ms
+        root.after(30) #go to the next frame after 30 ms (since the video is 30 fps)
     return
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
