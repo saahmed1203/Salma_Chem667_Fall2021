@@ -112,7 +112,7 @@ def frame_processing(): # function to process a single frame
     cv2.waitKey(0) #waits for user to close windows
     return
 
-#the main detection script
+#the main detection script (now split into two functions)
 def mainDetection():
     opening_video()
     frame_processing()
@@ -237,9 +237,9 @@ names = [
 
 doc() #to print the user guide
 
+# TO DO LIST:
 #set up open video code and separate the code that detects each frame (lines 66 - 111)
 #take detect_livestream_SA and split it into two
-
 #create a callback function that calls every 30 fps (check by printing the frame number)
 
 #root is for button grid
