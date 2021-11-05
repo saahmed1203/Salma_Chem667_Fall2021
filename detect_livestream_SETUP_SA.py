@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Detect script SET UP
+Detect script SET UP (keystrokes won't work)
 Created on Thurs Nov 4 2:07:21 2021
 
 @author: salma
@@ -63,17 +63,15 @@ def dist(point1, point2, point3, point4): #to find distance between objects
 
 ########################## SET UP FOR MOUSE SCRIPT #############################
 
-#adding cv2.CAP_DSHOW makes windows open faster and output does not have any errors,
-#but in exchange, the camera quality is lowered, including the fps
 
-def opening_video():
+def opening_video(): # function to open video
     global cap
     #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
     cap = cv2.VideoCapture('fiveSecondPlankton.mp4')
     cap.set(3, 1920); cap.set(4, 1080); # set to 1080p resolution
     return
     
-def frame_processing(): 
+def frame_processing(): # function to process a single frame
     global detectArray
     frameCount=0                        # keeps track of frame number
     #while(cap.isOpened() and k.run):    # process each frame until end of video or 'q' key is pressed
@@ -87,6 +85,7 @@ def frame_processing():
         print('Can not find video or we are all done')
         #break
     #print('original size:',colorIM.shape)
+    
     # blur and threshold image
     colorIM=cv2.resize(colorIM,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
