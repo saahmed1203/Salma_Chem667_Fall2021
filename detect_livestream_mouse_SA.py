@@ -56,58 +56,66 @@ def getAR(obj):
         ar=h/w
     return(xc,yc,ar,angle)
 
+def opening_video(): # function to open video
+    global cap
+    #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
+    cap = cv2.VideoCapture('fiveSecondPlankton.mp4')
+    cap.set(3, 1920); cap.set(4, 1080); # set to 1080p resolution
+    return
+
+def frame_processing(): # function to process a single frame
+    global detectArray
+    frameCount=0                        # keeps track of frame number
+    #while(cap.isOpened() and k.run):    # process each frame until end of video or 'q' key is pressed
+    
+    # get image
+    ret, colorIM = cap.read()
+    if not ret:                     # check to make sure there was a frame to read
+        print('Can not find video or we are all done')
+        #break
+    #print('original size:',colorIM.shape)
+    
+    # blur and threshold image
+    colorIM=cv2.resize(colorIM,PROCESS_REZ)
+    grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
+    blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
+    ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
+    
+    # get contours  # dummy, 
+    contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
+    
+    # draw bounding boxes around objects
+    objCount=0                                      # used as object ID in detectArray
+    for objContour in contourList:                  # process all objects in the contourList
+        area = int(cv2.contourArea(objContour))     # find obj area        
+        if area>MIN_AREA:                           # only detect large objects       
+            PO = cv2.boundingRect(objContour)
+            x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
+            cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
+            (xc,yc,ar,angle)=getAR(objContour)
+            if save: 
+                #frameCount+=1 #start frame count here
+                # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
+                parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
+                detectArray=np.append(detectArray,parm,axis=0) 
+                print('Object #',objCount,'saved!')
+                objCount+=1                                     # indicate processed an object
+                
+    #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
+
+    # shows results
+    cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
+    #cv2.imshow('blurIM', cv2.resize(blurIM,VGA)) # display blurred image
+    cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))# display thresh image
+    if save:
+        frameCount+=1
+    cv2.waitKey(0) #waits for user to close windows
+    return
+
 #the main detection script
 def mainDetection():
-    global detectArray,cap, run
-    #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
-    cap = cv2.VideoCapture('fiveSecondPlankton.mp4')    # to test script
-    cap.set(3, 1920); cap.set(4, 1080); # set to 1080p resolution
-    frameCount=0                        # keeps track of frame number
-    while cap.isOpened() and run:
-    #while run:
-        # get image
-        ret, colorIM = cap.read()
-        if not ret:                     # check to make sure there was a frame to read
-            print('Can not find video or we are all done')
-            print("Total frames:", frameCount)
-            return
-        #print('original size:',colorIM.shape)
-        # blur and threshold image
-        colorIM=cv2.resize(colorIM,PROCESS_REZ)
-        grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
-        blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
-        ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
-        
-        # get contours  # dummy, 
-        contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
-        
-        # draw bounding boxes around objects
-        objCount=0                                      # used as object ID in detectArray
-        for objContour in contourList:                  # process all objects in the contourList
-            area = int(cv2.contourArea(objContour))     # find obj area        
-            if area>MIN_AREA:                           # only detect large objects       
-                PO = cv2.boundingRect(objContour)
-                x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
-                cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
-                (xc,yc,ar,angle)=getAR(objContour)
-                if save:
-                    #frameCount+=1 #start frame count here
-                    # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
-                    parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
-                    detectArray=np.append(detectArray,parm,axis=0) 
-                    print('Object #',objCount,'saved!')         # indicate processed an object
-                    objCount+=1                                     
-                    
-        #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
-    
-        # shows results
-        cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
-        #cv2.imshow('blurIM', cv2.resize(blurIM,VGA)) # display blurred image
-        cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))# display thresh image
-        
-        if save: #so that the frames in the output csv file are in order
-            frameCount+=1
-        #cv2.waitKey(500) #slows down object detection
+    opening_video()
+    frame_processing()
     return         
 
 def dist(point1, point2, point3, point4): #to find distance between objects
