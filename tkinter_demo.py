@@ -9,6 +9,7 @@ Created on Wed Nov  3 13:14:43 2021
 
 import tkinter as tk
 from tkinter import filedialog
+import cv2
 
 x = 0
 def addFunction():          # defining button functions (the Add +1 button)
@@ -27,9 +28,13 @@ def quitProgram():          # defining the exit button
 # Creating a single root (file manager example)
 root = tk.Tk()              # this creates a widget
 root.withdraw()             # this hides the widget once it's created (but it's still active!)
-file = filedialog.askopenfile()     # creates the file manager window (using the root widget)
+file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
 print()
 print('File pathway:', file)
+
+#to view file
+cv2.imshow('Image chosen:',cv2.imread(file))
+cv2.waitKey(0)
 
 #'''
 #creating a second window
