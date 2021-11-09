@@ -98,7 +98,7 @@ def frame_processing(): # function to process a single frame
                     # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
                     parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
                     detectArray=np.append(detectArray,parm,axis=0) 
-                    print('Object #',objCount,'saved!')
+                    #print('Object #',objCount,'saved!')
                     objCount+=1                                     # indicate processed an object
                     
         #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
@@ -134,7 +134,6 @@ def updateStatusDisplay(): #what goes on the status bar on top of the screen
     
 
 def doButton(): #determines functions of each button
-    #global frameCount,displayScale,Z,CROP,getCenter,savePic,bkgState,bkgIM
     global thresh, MIN_AREA, MAX_AREA, skip_im, save, run
    
     val=v.get()
@@ -183,10 +182,11 @@ def doButton(): #determines functions of each button
     
     updateStatusDisplay()
     frame_processing() #detect script
+    #root.after(30)
     return
 
 ######################### commands if mouse clicks on screen ########################
-def doMouse(event,x,y,flags,param): # don't really need this?
+def doMouse(event,x,y,flags,param): # don't really need this....?
     global xc,yc
     
     if event == cv2.EVENT_LBUTTONDOWN:
@@ -194,7 +194,7 @@ def doMouse(event,x,y,flags,param): # don't really need this?
         frame_processing()
     return 
 
-def auto_callback(): # the "demon" function that allows the script to run 
+def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
     while run: 
         frame_processing()
         root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
