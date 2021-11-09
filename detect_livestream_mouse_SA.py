@@ -105,8 +105,8 @@ def frame_processing(): # function to process a single frame
     
         # shows results
         cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
-        #cv2.imshow('blurIM', cv2.resize(blurIM,VGA)) # display blurred image
-        cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))# display thresh image
+        #cv2.imshow('blurIM', cv2.resize(blurIM,VGA))       # display blurred image
+        cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))    # display thresh image
         if save:
             frameCount+=1
         #cv2.waitKey(0) #waits for user to close windows
@@ -181,8 +181,7 @@ def doButton(): #determines functions of each button
         return
     
     updateStatusDisplay()
-    frame_processing() #detect script
-    #root.after(30)
+    frame_processing() #detect script (single frame)
     return
 
 def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
@@ -267,9 +266,7 @@ for val, txt in enumerate(names): #goes through each button (and what they'd loo
 #cv2.setMouseCallback('Full Image',doMouse)
 #cv2.setMouseCallback('Demon function',auto_callback)
 
-#mainDetection()
-opening_video()
-frame_processing()
+mainDetection()
 print('End of loop')
 root.mainloop()     # program will keep waiting until a button has been pressed
 
