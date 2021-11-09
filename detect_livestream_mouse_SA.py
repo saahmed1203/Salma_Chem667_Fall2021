@@ -16,6 +16,9 @@ press 'q' to quit the program.
 import cv2
 import numpy as np
 import tkinter as tk
+from PIL import Image
+from PIL import ImageTk
+import threading
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -66,51 +69,69 @@ def opening_video(): # function to open video
 def frame_processing(): # function to process a single frame
     global detectArray
     frameCount=0                        # keeps track of frame number
-    while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
+    #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
-        # get image
-        ret, vid_frame = cap.read()
-        if not ret:                     # check to make sure there was a frame to read
-            print('Can not find video or we are all done')
-            #break
-        #print('original size:',colorIM.shape)
-        
-        # blur and threshold image
-        colorIM=cv2.resize(vid_frame,PROCESS_REZ)
-        grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
-        blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
-        ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
-        
-        # get contours  # dummy, 
-        contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
-        
-        # draw bounding boxes around objects
-        objCount=0                                      # used as object ID in detectArray
-        for objContour in contourList:                  # process all objects in the contourList
-            area = int(cv2.contourArea(objContour))     # find obj area        
-            if area>MIN_AREA:                           # only detect large objects       
-                PO = cv2.boundingRect(objContour)
-                x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
-                cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
-                (xc,yc,ar,angle)=getAR(objContour)
-                if save: 
-                    #frameCount+=1 #start frame count here
-                    # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
-                    parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
-                    detectArray=np.append(detectArray,parm,axis=0) 
-                    #print('Object #',objCount,'saved!')
-                    objCount+=1                                     # indicate processed an object
-                    
-        #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
+    # get image
+    ret, vid_frame = cap.read()
+    if not ret:                     # check to make sure there was a frame to read
+        print('Can not find video or we are all done')
+        #break
+    #print('original size:',colorIM.shape)
     
-        # shows results
-        cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
-        #cv2.imshow('blurIM', cv2.resize(blurIM,VGA))       # display blurred image
-        cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))    # display thresh image
-        if save:
-            frameCount+=1
-        #cv2.waitKey(0) #waits for user to close windows
-        return
+    # blur and threshold image
+    colorIM=cv2.resize(vid_frame,PROCESS_REZ)
+    grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
+    blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
+    ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
+    
+    # get contours  # dummy, 
+    contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
+    
+    # draw bounding boxes around objects
+    objCount=0                                      # used as object ID in detectArray
+    for objContour in contourList:                  # process all objects in the contourList
+        area = int(cv2.contourArea(objContour))     # find obj area        
+        if area>MIN_AREA:                           # only detect large objects       
+            PO = cv2.boundingRect(objContour)
+            x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
+            cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
+            (xc,yc,ar,angle)=getAR(objContour)
+            if save: 
+                #frameCount+=1 #start frame count here
+                # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
+                parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
+                detectArray=np.append(detectArray,parm,axis=0) 
+                #print('Object #',objCount,'saved!')
+                objCount+=1                                     # indicate processed an object
+                
+    #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
+
+    # shows results
+    cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
+    #cv2.imshow('blurIM', cv2.resize(blurIM,VGA))       # display blurred image
+    cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))    # display thresh image
+    if save:
+        frameCount+=1
+    #cv2.waitKey(0) #waits for user to close windows
+    return
+
+def looping_video():
+    ''' #from online
+    while not cap.stopEvent.is_set() and run:
+        # grab the frame from the video stream and resize it to
+        # have a maximum width of 300 pixels
+        cap.frame = cap.vs.read()
+		# OpenCV represents images in BGR order; however PIL
+		# represents images in RGB order, so we need to swap
+		# the channels, then convert to PIL and ImageTk format
+        image = cv2.cvtColor(cap.frame, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+        image = ImageTk.PhotoImage(image)
+        '''
+    frame_processing()
+    vid_root.mainloop()
+    return
+    
 
 #the main detection script (now split into two functions)
 def mainDetection():
@@ -174,14 +195,15 @@ def doButton(): #determines functions of each button
             thresh = 0
     
     elif 'Exit' in but:
-        run = 0         #quits livestream
+        run = 0             # quits livestream
+        vid_root.quit()
         root.withdraw()
         root.destroy()
         cv2.destroyAllWindows()
         return
     
     updateStatusDisplay()
-    frame_processing() #detect script (single frame)
+    frame_processing()      # detect script (single frame)
     return
 
 def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
@@ -261,10 +283,9 @@ for val, txt in enumerate(names): #goes through each button (and what they'd loo
     c=int(val%4)
     tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
-#cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
-
-#cv2.setMouseCallback('Full Image',doMouse)
-#cv2.setMouseCallback('Demon function',auto_callback)
+#create a second root to just play the video?
+vid_root = tk.Toplevel()
+vid_root.withdraw()         # to hide widget (but will use it to play video)
 
 mainDetection()
 print('End of loop')
