@@ -185,6 +185,12 @@ def doButton(): #determines functions of each button
     #root.after(30)
     return
 
+def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
+    while run: 
+        frame_processing()
+        root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
+    return
+
 ######################### commands if mouse clicks on screen ########################
 def doMouse(event,x,y,flags,param): # don't really need this....?
     global xc,yc
@@ -193,12 +199,6 @@ def doMouse(event,x,y,flags,param): # don't really need this....?
         #xc,yc = x*FULL_SCALE,y*FULL_SCALE # compensate for full scale scaling
         frame_processing()
     return 
-
-def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
-    while run: 
-        frame_processing()
-        root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
-    return
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
