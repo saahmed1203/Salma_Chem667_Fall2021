@@ -185,7 +185,7 @@ def doButton(): #determines functions of each button
     frame_processing() #detect script
     return
 
-######################### creating the button display ########################
+######################### commands if mouse clicks on screen ########################
 def doMouse(event,x,y,flags,param): # don't really need this?
     global xc,yc
     
@@ -197,7 +197,7 @@ def doMouse(event,x,y,flags,param): # don't really need this?
 def auto_callback(): # the "demon" function that allows the script to run 
     while run: 
         frame_processing()
-        root.after(30) #go to the next frame after 30 ms (since the video is 30 fps)
+        root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
     return
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
