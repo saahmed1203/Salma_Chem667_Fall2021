@@ -37,7 +37,7 @@ detectArray=np.empty((0,MAX_COL))  # detection features populated with object fo
 #detectList = []
 
 #variables associated with buttons (originally with keystrokes) and the starting values
-thresh = 50
+thresh = 60
 MIN_AREA = 50
 MAX_AREA = 2000
 run = 1         # runs program until user clicks "Exit"
@@ -60,57 +60,57 @@ def opening_video(): # function to open video
     global cap
     #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
     cap = cv2.VideoCapture('fiveSecondPlankton.mp4')
-    cap.set(3, 1920); cap.set(4, 1080); # set to 1080p resolution
+    cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
     return
 
 def frame_processing(): # function to process a single frame
     global detectArray
     frameCount=0                        # keeps track of frame number
-    #while(cap.isOpened() and k.run):    # process each frame until end of video or 'q' key is pressed
+    while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
-    # get image
-    ret, colorIM = cap.read()
-    if not ret:                     # check to make sure there was a frame to read
-        print('Can not find video or we are all done')
-        #break
-    #print('original size:',colorIM.shape)
+        # get image
+        ret, vid_frame = cap.read()
+        if not ret:                     # check to make sure there was a frame to read
+            print('Can not find video or we are all done')
+            #break
+        #print('original size:',colorIM.shape)
+        
+        # blur and threshold image
+        colorIM=cv2.resize(vid_frame,PROCESS_REZ)
+        grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
+        blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
+        ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
+        
+        # get contours  # dummy, 
+        contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
+        
+        # draw bounding boxes around objects
+        objCount=0                                      # used as object ID in detectArray
+        for objContour in contourList:                  # process all objects in the contourList
+            area = int(cv2.contourArea(objContour))     # find obj area        
+            if area>MIN_AREA:                           # only detect large objects       
+                PO = cv2.boundingRect(objContour)
+                x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
+                cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
+                (xc,yc,ar,angle)=getAR(objContour)
+                if save: 
+                    #frameCount+=1 #start frame count here
+                    # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
+                    parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
+                    detectArray=np.append(detectArray,parm,axis=0) 
+                    print('Object #',objCount,'saved!')
+                    objCount+=1                                     # indicate processed an object
+                    
+        #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
     
-    # blur and threshold image
-    colorIM=cv2.resize(colorIM,PROCESS_REZ)
-    grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
-    blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
-    ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
-    
-    # get contours  # dummy, 
-    contourList, hierarchy = cv2.findContours(binaryIM, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) # all countour points, uses more memory
-    
-    # draw bounding boxes around objects
-    objCount=0                                      # used as object ID in detectArray
-    for objContour in contourList:                  # process all objects in the contourList
-        area = int(cv2.contourArea(objContour))     # find obj area        
-        if area>MIN_AREA:                           # only detect large objects       
-            PO = cv2.boundingRect(objContour)
-            x0=PO[0]; y0=PO[1]; x1=x0+PO[2]; y1=y0+PO[3]
-            cv2.rectangle(colorIM, (x0,y0), (x1,y1), (0,255,0), THICK) # place GREEN rectangle around each object, BGR
-            (xc,yc,ar,angle)=getAR(objContour)
-            if save: 
-                #frameCount+=1 #start frame count here
-                # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
-                parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
-                detectArray=np.append(detectArray,parm,axis=0) 
-                print('Object #',objCount,'saved!')
-                objCount+=1                                     # indicate processed an object
-                
-    #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
-
-    # shows results
-    cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
-    #cv2.imshow('blurIM', cv2.resize(blurIM,VGA)) # display blurred image
-    cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))# display thresh image
-    if save:
-        frameCount+=1
-    cv2.waitKey(0) #waits for user to close windows
-    return
+        # shows results
+        cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
+        #cv2.imshow('blurIM', cv2.resize(blurIM,VGA)) # display blurred image
+        cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))# display thresh image
+        if save:
+            frameCount+=1
+        #cv2.waitKey(0) #waits for user to close windows
+        return
 
 #the main detection script (now split into two functions)
 def mainDetection():
@@ -129,7 +129,7 @@ def dist(point1, point2, point3, point4): #to find distance between objects
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
     global root
-    textOut='   Image name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
+    textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
     tk.Label(root, text=textOut,bg="cyan",justify = tk.LEFT).grid(row=0,column=0,columnspan=4)
     
 
@@ -138,7 +138,7 @@ def doButton(): #determines functions of each button
     global thresh, MIN_AREA, MAX_AREA, skip_im, save, run
    
     val=v.get()
-    but=names[val]
+    but=names[val] 
     #print('But:',but,'Val:', val)
 
     increment=0
@@ -152,9 +152,11 @@ def doButton(): #determines functions of each button
         increment=1
 
     if 'Stop Detecting' in but:
+        print('Stopped Detection')
         save = 0
         
     elif 'Start Detecting' in but:
+        print('Started Detection')
         save = 1        # this flag saves the objects to the csv file
         
     elif 'Min Area' in but:
@@ -180,21 +182,21 @@ def doButton(): #determines functions of each button
         return
     
     updateStatusDisplay()
-    mainDetection() #detect script
+    frame_processing() #detect script
     return
 
 ######################### creating the button display ########################
-def doMouse(event,x,y,flags,param):
+def doMouse(event,x,y,flags,param): # don't really need this?
     global xc,yc
     
     if event == cv2.EVENT_LBUTTONDOWN:
         #xc,yc = x*FULL_SCALE,y*FULL_SCALE # compensate for full scale scaling
-        mainDetection()
+        frame_processing()
     return 
 
 def auto_callback(): # the "demon" function that allows the script to run 
-    while run:
-        mainDetection()
+    while run: 
+        frame_processing()
         root.after(30) #go to the next frame after 30 ms (since the video is 30 fps)
     return
 
@@ -239,7 +241,7 @@ names = [
     (" ")
 ]
 
-################################## MAIN #####################################
+##################################### MAIN #####################################
 
 doc() #to print the user guide
 
@@ -251,7 +253,6 @@ doc() #to print the user guide
 #root is for button grid
 root = tk.Tk() 
 v = tk.IntVar()
-#v.set(2)            # set choice to "+1 Frame"
 
 root.title("Detection Functions")
 updateStatusDisplay()
@@ -262,11 +263,15 @@ for val, txt in enumerate(names): #goes through each button (and what they'd loo
     tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
 #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
-cv2.setMouseCallback('Full Image',doMouse)
-print('End of loop')
 
-mainDetection()
-root.mainloop() #program will keep waiting until a button has been pressed
+#cv2.setMouseCallback('Full Image',doMouse)
+#cv2.setMouseCallback('Demon function',auto_callback)
+
+#mainDetection()
+opening_video()
+frame_processing()
+print('End of loop')
+root.mainloop()     # program will keep waiting until a button has been pressed
 
 cv2.destroyAllWindows()             # clean up to end program
 cap.release()
@@ -274,7 +279,7 @@ print('video closed')
 
 #saves data into the csv file
 print('Done with livestream. Saving raw feature file and exiting program')
-np.savetxt(temp_name,detectArray,header=detectHeader,delimiter=',', fmt = '%d') #original csv
+np.savetxt(temp_name,detectArray,header=detectHeader,delimiter=',', fmt = '%d') # original csv
 
 ################ tracking the objects to update their IDs ######################
 print(' ')
