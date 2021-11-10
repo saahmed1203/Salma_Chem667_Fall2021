@@ -14,19 +14,20 @@ file. The user can press 's' to start/pause saving objects in the livestream, an
 press 'q' to quit the program.
 """
 import cv2
-import numpy as np
+import numpy as np 
 import tkinter as tk
-from PIL import Image
-from PIL import ImageTk
-import threading
+#from PIL import Image
+#from PIL import ImageTk
+#import threading
+#import tkvideo_pypi.py as TV
 import warnings
 
 warnings.filterwarnings('ignore')
 #################### CSV FILE NAME AND IMAGE RES ##############################
 detectFileName='detection_mouselivestream_updatedID.csv'      # output file containing object location, area, aspect ratio for each piceo frame
-temp_name = 'raw_mouselivestream_detection.csv'
+temp_name = 'raw_mouselivestream_detection.csv' 
 X_REZ=640; Y_REZ=480;               # viewing resolution
-THICK=1                             # bounding box line thickness
+THICK=1                             # bounding box line thickness 
 BLUR=7                              # object bluring to help detection
 VGA=(X_REZ,Y_REZ)
 PROCESS_REZ=(X_REZ//2,Y_REZ//2)
@@ -62,12 +63,12 @@ def getAR(obj):
 def opening_video(): # function to open video
     global cap
     #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
-    cap = cv2.VideoCapture('fiveSecondPlankton.mp4')
+    cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
     cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
     return
 
 def frame_processing(): # function to process a single frame
-    global detectArray
+    global detectArray, colorIM, binaryIM, vid_frame
     frameCount=0                        # keeps track of frame number
     #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
@@ -105,33 +106,28 @@ def frame_processing(): # function to process a single frame
                 objCount+=1                                     # indicate processed an object
                 
     #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
-
+    if save:
+        frameCount+=1
+    
     # shows results
     cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
     #cv2.imshow('blurIM', cv2.resize(blurIM,VGA))       # display blurred image
     cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))    # display thresh image
-    if save:
-        frameCount+=1
+    
     #cv2.waitKey(0) #waits for user to close windows
     return
-
-def looping_video():
-    ''' #from online
-    while not cap.stopEvent.is_set() and run:
-        # grab the frame from the video stream and resize it to
-        # have a maximum width of 300 pixels
-        cap.frame = cap.vs.read()
-		# OpenCV represents images in BGR order; however PIL
-		# represents images in RGB order, so we need to swap
-		# the channels, then convert to PIL and ImageTk format
-        image = cv2.cvtColor(cap.frame, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image)
-        image = ImageTk.PhotoImage(image)
-        '''
-    frame_processing()
+    
+'''
+def looping_video():            # creating a second root that just loops through the video
+    global vid_root
+    vid_root = tk.Toplevel()
+    #vid_root.withdraw()         # to hide widget (but will use it to play video)
+    test_vid = TV.tkvideo('fiveSecondPlankton.mp4', 'test video',size = (1920,1080))
+    test_vid.play()
+    # here would be the code to view video
     vid_root.mainloop()
     return
-    
+ '''   
 
 #the main detection script (now split into two functions)
 def mainDetection():
@@ -196,7 +192,7 @@ def doButton(): #determines functions of each button
     
     elif 'Exit' in but:
         run = 0             # quits livestream
-        vid_root.quit()
+        #vid_root.quit()
         root.withdraw()
         root.destroy()
         cv2.destroyAllWindows()
@@ -266,7 +262,7 @@ names = [
 
 doc() #to print the user guide
 
-# TO DO LIST:
+# TO DO LIST: 
 #set up open video code and separate the code that detects each frame (lines 66 - 111)
 #take detect_livestream_SA and split it into two
 #create a callback function that calls every 30 fps (check by printing the frame number)
@@ -284,8 +280,8 @@ for val, txt in enumerate(names): #goes through each button (and what they'd loo
     tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
 #create a second root to just play the video?
-vid_root = tk.Toplevel()
-vid_root.withdraw()         # to hide widget (but will use it to play video)
+#opening_video()
+#looping_video()
 
 mainDetection()
 print('End of loop')
