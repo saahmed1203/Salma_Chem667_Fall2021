@@ -58,17 +58,17 @@ def getAR(obj):
     return(xc,yc,ar,angle)
 
 def opening_video(): # function to open video
-    global cap, ret, vid_frame
+    global cap, ret, vid_frame, file
     if vid_type == 'y' or vid_type == 'Y':
         cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
     else: #put file manager stuff here
         file_man = tk.Tk()
         file_man.withdraw()
         file = filedialog.askopenfilename()
-        file = file.split('/')
+        #file = file.split('/')
         #cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
         try:
-            cap = cv2.VideoCapture(file[-1])
+            cap = cv2.VideoCapture(file)
         except AttributeError:
             print('Must be an mp4/video file')
             print()
@@ -143,7 +143,12 @@ def dist(point1, point2, point3, point4): #to find distance between objects
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
     global root
-    textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
+    filename = file.split('/')
+    filename = filename[-1]
+    if vid_type == 'y':
+        textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
+    else:
+        textOut='   Video name=' + str(filename)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   '
     tk.Label(root, text=textOut,bg="cyan",justify = tk.LEFT).grid(row=0,column=0,columnspan=4)
     
 
