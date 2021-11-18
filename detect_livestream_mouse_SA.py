@@ -6,7 +6,7 @@ Created on Tue Oct 12 12:18:53 2021
 @author: salma
 
 v2.0
-Replaced the keyboard keys with mouse buttons
+Replaced the keyboard keys with mouse buttons (only works with recorded videos!)
 
 v1.0
 This script takes the livestream input of the microscope and returns the detect csv
@@ -18,8 +18,7 @@ import numpy as np
 import tkinter as tk
 #from PIL import Image
 #from PIL import ImageTk
-#import threading
-#import tkvideo_pypi.py as TV
+import tkvideo as TV
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -43,7 +42,7 @@ detectArray=np.empty((0,MAX_COL))  # detection features populated with object fo
 #variables associated with buttons (originally with keystrokes) and the starting values
 thresh = 60
 MIN_AREA = 50
-MAX_AREA = 2000
+MAX_AREA = 1500
 run = 1         # runs program until user clicks "Exit"
 save = 0        # saves the objects detected to the csv file
 
@@ -61,26 +60,24 @@ def getAR(obj):
     return(xc,yc,ar,angle)
 
 def opening_video(): # function to open video
-    global cap
-    #cap = cv2.VideoCapture(1)           # start video file reader (currently livestream)
+    global cap, ret, vid_frame
+    #cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
     cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
     cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
-    return
-
-def frame_processing(): # function to process a single frame
-    global detectArray, colorIM, binaryIM, vid_frame
-    frameCount=0                        # keeps track of frame number
-    #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
-    
-    # get image
     ret, vid_frame = cap.read()
     if not ret:                     # check to make sure there was a frame to read
         print('Can not find video or we are all done')
-        #break
-    #print('original size:',colorIM.shape)
+    #return
+
+def frame_processing(): # function to process a single frame
+    global detectArray, colorIM, binaryIM, vid_frame, ref_num, frameCount
+    cap.set(1, ref_num)
+    testIM = cap.read()[1].astype(np.uint8)
+    
+    #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
     # blur and threshold image
-    colorIM=cv2.resize(vid_frame,PROCESS_REZ)
+    colorIM=cv2.resize(testIM,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
     blurIM=cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
     ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
@@ -114,20 +111,21 @@ def frame_processing(): # function to process a single frame
     #cv2.imshow('blurIM', cv2.resize(blurIM,VGA))       # display blurred image
     cv2.imshow('binaryIM', cv2.resize(binaryIM,VGA))    # display thresh image
     
+    ref_num += 1
     #cv2.waitKey(0) #waits for user to close windows
     return
     
-'''
+
 def looping_video():            # creating a second root that just loops through the video
     global vid_root
     vid_root = tk.Toplevel()
-    #vid_root.withdraw()         # to hide widget (but will use it to play video)
+    #vid_root.withdraw()        # to hide widget (but will use it to play video)
     test_vid = TV.tkvideo('fiveSecondPlankton.mp4', 'test video',size = (1920,1080))
-    test_vid.play()
     # here would be the code to view video
+    test_vid.play()
     vid_root.mainloop()
     return
- '''   
+
 
 #the main detection script (now split into two functions)
 def mainDetection():
@@ -262,34 +260,41 @@ names = [
 
 doc() #to print the user guide
 
-# TO DO LIST: 
-#set up open video code and separate the code that detects each frame (lines 66 - 111)
-#take detect_livestream_SA and split it into two
-#create a callback function that calls every 30 fps (check by printing the frame number)
+opening_video() 
 
-#root is for button grid
-root = tk.Tk() 
-v = tk.IntVar()
+if ret:
+    root = tk.Tk()      #root is for button grid
+    v = tk.IntVar()
+    
+    root.title("Detection Functions")
+    updateStatusDisplay()
+    
+    for val, txt in enumerate(names): #goes through each button (and what they'd look like)
+        r=int(1+val/4)
+        c=int(val%4)
+        tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
+    
+    ref_num = 0                         # keeps track of frame number (in video)
+    frameCount=0                        # keeps track of frame number (in csv)
+    #frame_processing()
+    #root.mainloop()     # program will keep waiting until a button has been pressed
+    try:
+        while (cap.isOpened()) and run:
+            frame_processing()
+            #vid_frame += 1
+            #mainDetection()
+            root.update()
+    except:
+        pass
+    
+    root.withdraw()
+    root.destroy()
+    cv2.destroyAllWindows()             # clean up to end program
+    cap.release()
+    print('video closed')
 
-root.title("Detection Functions")
-updateStatusDisplay()
-
-for val, txt in enumerate(names): #goes through each button (and what they'd look like)
-    r=int(1+val/4)
-    c=int(val%4)
-    tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
-
-#create a second root to just play the video?
-#opening_video()
-#looping_video()
-
-mainDetection()
-print('End of loop')
-root.mainloop()     # program will keep waiting until a button has been pressed
-
-cv2.destroyAllWindows()             # clean up to end program
-cap.release()
-print('video closed')
+else:
+    print('Error, no video found...')
 
 #saves data into the csv file
 print('Done with livestream. Saving raw feature file and exiting program')
@@ -307,7 +312,7 @@ all_y_data = data[:,YC]
 distByFrame = []
 ind_counter = 0
 maxFrames=len(np.unique(data[:,FRAME]))
-print('Total frames',maxFrames)
+print('Total frames saved:',maxFrames)
 #for i in range(10): #to test loop
 for i in range(maxFrames-1): #to prevent frames from being repeated
     obj_data = np.where(data[:,FRAME] == i) #current frame index
