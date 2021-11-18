@@ -58,8 +58,8 @@ def getAR(obj):
 
 def opening_video(): # function to open video
     global cap, ret, vid_frame
-    #cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
-    cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
+    cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
+    #cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
     cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
     ret, vid_frame = cap.read()
     if not ret:                     # check to make sure there was a frame to read
@@ -69,7 +69,7 @@ def opening_video(): # function to open video
 def frame_processing(): # function to process a single frame
     global detectArray, colorIM, binaryIM, vid_frame, ref_num, frameCount
     cap.set(1, ref_num)
-    testIM = cap.read()[1].astype(np.uint8)
+    testIM = cap.read()[1].astype(np.uint8) #a single frame
     
     #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
@@ -176,10 +176,9 @@ def doButton(): #determines functions of each button
     
     elif 'Exit' in but:
         run = 0             # quits livestream
-        #vid_root.quit()
+        cv2.destroyAllWindows()
         root.withdraw()
         root.destroy()
-        cv2.destroyAllWindows()
         return
     
     updateStatusDisplay()
@@ -237,7 +236,7 @@ names = [
 
 doc() #to print the user guide
 
-opening_video() 
+opening_video() # opens video
 
 if ret:
     root = tk.Tk()      #root is for button grid
@@ -256,19 +255,22 @@ if ret:
     #frame_processing()
     #root.mainloop()     # program will keep waiting until a button has been pressed
     try:
-        while (cap.isOpened()) and run:
-            frame_processing()
+        while (cap.isOpened()) and run: #while loop that goes through each frame
+            frame_processing() #detect script of a single frame
             #vid_frame += 1
             #mainDetection()
             root.update()
     except:
         pass
     
-    root.withdraw()
-    root.destroy()
-    cv2.destroyAllWindows()             # clean up to end program
-    cap.release()
-    print('video closed')
+    try:
+        cap.release()
+        root.withdraw()
+        root.destroy()
+        cv2.destroyAllWindows()             # clean up to end program
+        print('video closed')
+    except:
+        pass
 
 else:
     print('Error, no video found...')
