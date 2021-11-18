@@ -185,12 +185,6 @@ def doButton(): #determines functions of each button
     frame_processing()      # detect script (single frame)
     return
 
-def auto_callback(): # the "demon" function that allows the script to run (might not need this..?)
-    while run: 
-        frame_processing()
-        root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
-    return
-
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
 WINDOW_SCALE=10         # window size increment
