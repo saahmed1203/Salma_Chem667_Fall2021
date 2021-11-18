@@ -16,9 +16,6 @@ press 'q' to quit the program.
 import cv2
 import numpy as np 
 import tkinter as tk
-#from PIL import Image
-#from PIL import ImageTk
-import tkvideo as TV
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -114,17 +111,6 @@ def frame_processing(): # function to process a single frame
     ref_num += 1
     #cv2.waitKey(0) #waits for user to close windows
     return
-    
-
-def looping_video():            # creating a second root that just loops through the video
-    global vid_root
-    vid_root = tk.Toplevel()
-    #vid_root.withdraw()        # to hide widget (but will use it to play video)
-    test_vid = TV.tkvideo('fiveSecondPlankton.mp4', 'test video',size = (1920,1080))
-    # here would be the code to view video
-    test_vid.play()
-    vid_root.mainloop()
-    return
 
 
 #the main detection script (now split into two functions)
@@ -205,15 +191,6 @@ def auto_callback(): # the "demon" function that allows the script to run (might
         frame_processing()
         root.after(30) # go to the next frame after 30 ms (since the video is 30 fps)
     return
-
-######################### commands if mouse clicks on screen ########################
-def doMouse(event,x,y,flags,param): # don't really need this....?
-    global xc,yc
-    
-    if event == cv2.EVENT_LBUTTONDOWN:
-        #xc,yc = x*FULL_SCALE,y*FULL_SCALE # compensate for full scale scaling
-        frame_processing()
-    return 
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
