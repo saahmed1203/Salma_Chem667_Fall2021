@@ -54,8 +54,7 @@ def getImage():
     root = tk.Tk()
     root.withdraw()
     file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
-    #file = 'black_mountain.jpg'
-    print('File chosen:',file)
+    #print('File chosen:',file)
     try:
         image = cv2.imread(file)
         return image
@@ -87,6 +86,7 @@ def mainDetection():
     #pic = getImage()
     #global pic, thresh
     if pic is None:
+        print('Please press "Exit" to properly close program')
         return
     colorIM=cv2.resize(pic,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image       
@@ -151,6 +151,13 @@ def doButton(): #determines functions of each button
         cv2.destroyAllWindows()
         global pic
         pic = getImage()
+        if pic is None:
+            print('Canceling detection...')
+            root_2.withdraw()
+            root_2.quit()
+            root.destroy()
+            cv2.destroyAllWindows()
+            return
         
     elif 'Save Parameters' in but:
         save = 1        # this flag saves the objects to the csv file
@@ -171,11 +178,9 @@ def doButton(): #determines functions of each button
             thresh = 0
     
     elif 'Exit' in but:
-        #root_2.destroy()
         root_2.withdraw()
         root_2.quit()
         root.destroy()
-        #lambda: root_2.destroy()
         cv2.destroyAllWindows()
         return
     
@@ -183,33 +188,6 @@ def doButton(): #determines functions of each button
     mainDetection() #detect script
     return
 
-######################### creating the button display ########################
-def doMouse(event,x,y,flags,param):
-    global xc,yc
-    
-    if event == cv2.EVENT_LBUTTONDOWN:
-        #xc,yc = x*FULL_SCALE,y*FULL_SCALE # compensate for full scale scaling
-        mainDetection()
-    return 
-
-'''
-def button_display(): #compiled the mainloop into a function
-    global root_2
-    root_2 = tk.Tk() #root is for file manager, root_2 is for button grid
-    v = tk.IntVar()
-    v.set(2)            # set choice to "+1 Frame"
-    
-    root_2.title("Detection Functions")
-    updateStatusDisplay()
-    
-    for val, txt in enumerate(names): #goes through each button (and what they'd look like)
-        r=int(1+val/4)
-        c=int(val%4)
-        tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
-    
-    cv2.setMouseCallback('Full Image',doMouse)
-    return
-'''
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
 WINDOW_SCALE=10         # window size increment
@@ -257,37 +235,39 @@ doc() #to print the user guide
 
 pic = getImage()
 
-#root is for file manager, root_2 is for button grid
-root_2 = tk.Toplevel() 
-v = tk.IntVar()
-#v.set(2)            # set choice to "+1 Frame"
+if pic is not None:
+    #root is for file manager, root_2 is for button grid
+    root_2 = tk.Toplevel() 
+    v = tk.IntVar()
+    #v.set(2)            # set choice to "+1 Frame"
+    
+    root_2.title("Detection Functions")
+    updateStatusDisplay()
+    
+    for val, txt in enumerate(names): #goes through each button (and what they'd look like)
+        #print('Names:',names)
+        #print('Val:',val)
+        #print('Text:',txt)
+        r=int(1+val/4)
+        c=int(val%4)
+        tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
-root_2.title("Detection Functions")
-updateStatusDisplay()
+    mainDetection()
+    
+    root_2.mainloop() #program will keep waiting until a button has been pressed
+    cv2.destroyAllWindows()     # clean up to end program
 
-for val, txt in enumerate(names): #goes through each button (and what they'd look like)
-    #print('Names:',names)
-    #print('Val:',val)
-    #print('Text:',txt)
-    r=int(1+val/4)
-    c=int(val%4)
-    tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
+    print('Done with images.') #once the program ends
+    #np.savetxt(detectFileName,detectArray,header=detectHeader,delimiter=',')
+    
+    #saves data into the csv file
+    print('Saving data to CSV file ...')
+    detectDF = pd.DataFrame(detectList, columns = detectHeader)
+    detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
 
-mainDetection()
-cv2.setMouseCallback('Full Image',doMouse)
-print('End of loop')
-
-root_2.mainloop() #program will keep waiting until a button has been pressed
-#print('Out of loop')
-cv2.destroyAllWindows()     # clean up to end program
-
-print('Done with images.') #once the program ends
-#np.savetxt(detectFileName,detectArray,header=detectHeader,delimiter=',')
-
-#saves data into the csv file
-print('Saving data to CSV file ...')
-detectDF = pd.DataFrame(detectList, columns = detectHeader)
-detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
+else:
+    print('Canceling detection...')
+    print('No CSV file was made')
 
 print('bye!')               # tell the user program has ended
 
