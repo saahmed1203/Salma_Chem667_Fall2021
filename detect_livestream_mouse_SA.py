@@ -65,8 +65,8 @@ def opening_video(): # function to open video
         file_man = tk.Tk()
         file_man.withdraw()
         file = filedialog.askopenfilename()
-        #file = file.split('/')
-        #cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
+        filename = file.split('/')
+        filename = filename[-1]
         try:
             cap = cv2.VideoCapture(file)
         except AttributeError:
@@ -143,9 +143,7 @@ def dist(point1, point2, point3, point4): #to find distance between objects
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
     global root
-    filename = file.split('/')
-    filename = filename[-1]
-    if vid_type == 'y':
+    if vid_type == 'y' or vid_type == 'Y':
         textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
     else:
         textOut='   Video name=' + str(filename)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   '
@@ -194,6 +192,7 @@ def doButton(): #determines functions of each button
     
     elif 'Exit' in but:
         run = 0             # quits livestream
+        cap.release()
         cv2.destroyAllWindows()
         root.withdraw()
         return
@@ -267,7 +266,7 @@ if ret:
     frameCount=0                        # keeps track of frame number (in csv)
 
     try:
-        while (cap.isOpened()) and run: #while loop that goes through each frame
+        while (cap.isOpened()) and run: # while loop that goes through each frame
             frame_processing() #detect script of a single frame
             root.update()
     except:
