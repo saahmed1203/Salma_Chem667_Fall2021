@@ -129,7 +129,6 @@ def updateStatusDisplay(): #what goes on the status bar on top of the screen
     
 
 def doButton(): #determines functions of each button
-    #global frameCount,displayScale,Z,CROP,getCenter,savePic,bkgState,bkgIM
     global thresh, MIN_AREA, MAX_AREA, skip_im, save
    
     val=v.get()
@@ -239,15 +238,11 @@ if pic is not None:
     #root is for file manager, root_2 is for button grid
     root_2 = tk.Toplevel() 
     v = tk.IntVar()
-    #v.set(2)            # set choice to "+1 Frame"
     
     root_2.title("Detection Functions")
     updateStatusDisplay()
     
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
-        #print('Names:',names)
-        #print('Val:',val)
-        #print('Text:',txt)
         r=int(1+val/4)
         c=int(val%4)
         tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
@@ -258,7 +253,6 @@ if pic is not None:
     cv2.destroyAllWindows()     # clean up to end program
 
     print('Done with images.') #once the program ends
-    #np.savetxt(detectFileName,detectArray,header=detectHeader,delimiter=',')
     
     #saves data into the csv file
     print('Saving data to CSV file ...')
