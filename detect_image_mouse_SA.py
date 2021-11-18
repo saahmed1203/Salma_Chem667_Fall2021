@@ -247,11 +247,10 @@ if pic is not None:
         c=int(val%4)
         tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=0,value=val).grid(row=r,column=c)
 
-    mainDetection()
+    mainDetection() #to detect objects (but just the first instance)
     
     root_2.mainloop() #program will keep waiting until a button has been pressed
     cv2.destroyAllWindows()     # clean up to end program
-
     print('Done with images.') #once the program ends
     
     #saves data into the csv file
