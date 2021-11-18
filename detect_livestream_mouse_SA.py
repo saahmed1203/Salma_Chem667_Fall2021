@@ -16,6 +16,7 @@ press 'q' to quit the program.
 import cv2
 import numpy as np 
 import tkinter as tk
+from tkinter import filedialog
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -58,8 +59,20 @@ def getAR(obj):
 
 def opening_video(): # function to open video
     global cap, ret, vid_frame
-    cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
-    #cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
+    if vid_type == 'y' or vid_type == 'Y':
+        cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
+    else: #put file manager stuff here
+        file_man = tk.Tk()
+        file_man.withdraw()
+        file = filedialog.askopenfilename()
+        file = file.split('/')
+        #cap = cv2.VideoCapture('fiveSecondPlankton.mp4') 
+        try:
+            cap = cv2.VideoCapture(file[-1])
+        except AttributeError:
+            print('Must be an mp4/video file')
+            print()
+            return
     cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
     ret, vid_frame = cap.read()
     if not ret:                     # check to make sure there was a frame to read
@@ -178,7 +191,6 @@ def doButton(): #determines functions of each button
         run = 0             # quits livestream
         cv2.destroyAllWindows()
         root.withdraw()
-        root.destroy()
         return
     
     updateStatusDisplay()
@@ -230,10 +242,12 @@ names = [
 
 doc() #to print the user guide
 
+vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream
+
 opening_video() # opens video
 
 if ret:
-    root = tk.Tk()      #root is for button grid
+    root = tk.Toplevel()      #root is for button grid
     v = tk.IntVar()
     
     root.title("Detection Functions")
@@ -246,13 +260,10 @@ if ret:
     
     ref_num = 0                         # keeps track of frame number (in video)
     frameCount=0                        # keeps track of frame number (in csv)
-    #frame_processing()
-    #root.mainloop()     # program will keep waiting until a button has been pressed
+
     try:
         while (cap.isOpened()) and run: #while loop that goes through each frame
             frame_processing() #detect script of a single frame
-            #vid_frame += 1
-            #mainDetection()
             root.update()
     except:
         pass
@@ -260,7 +271,6 @@ if ret:
     try:
         cap.release()
         root.withdraw()
-        root.destroy()
         cv2.destroyAllWindows()             # clean up to end program
         print('video closed')
     except:
