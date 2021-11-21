@@ -6,7 +6,7 @@ Created on Tue Oct 12 12:18:53 2021
 @author: salma
 
 v4.0
-Replace mouse buttons with scrolling
+Some buttons were replaced with a scale (scrolling bar)
 
 v3.0
 Replaced the keyboard keys with mouse buttons

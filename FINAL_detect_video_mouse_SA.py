@@ -6,7 +6,7 @@ Created on Tue Oct 12 12:18:53 2021
 @author: salma
 
 v3.0 
-The 
+Some buttons were replaced with a scale (scrolling bar)
 
 v2.0
 Replaced the keyboard keys with mouse buttons (only works with recorded videos!)
