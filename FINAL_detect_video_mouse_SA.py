@@ -226,8 +226,8 @@ names = [
 
 doc() #to print the user guide
 
-#vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream
-vid_type = 'n'
+vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream
+#vid_type = 'n'
 
 opening_video() # opens video
 
@@ -264,10 +264,19 @@ if ret:
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
         r=int(4+val/4)
         c=int(val%4)
-        tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
-                       command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
-    
-    title4 = tk.Label(root, text = 'Press "play/pause" to play video')
+        if vid_type == 'y' and txt == 'Play/pause video':
+            tk.Radiobutton(root, text=txt + str('(Disabled)'),padx = 1, variable=v,width=BUTTON_WIDTH,
+                           command=doButton,indicatoron=True,value=val,
+                           state = 'disabled').grid(row=r,column=c)
+            play = True
+        else:
+            tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
+                           command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
+        
+    if vid_type == 'n':
+        title4 = tk.Label(root, text = 'Press "play/pause" to play video')
+    else:
+        title4 = tk.Label(root, text = 'Livestream is running')
     title4.grid(row=6, column = 1)
     
     ref_num = 0                         # keeps track of frame number (in video)
