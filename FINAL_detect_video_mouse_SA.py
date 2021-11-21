@@ -272,10 +272,12 @@ if ret:
         else:
             tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
                            command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
-        
-    if vid_type == 'n':
+    
+    #label below the buttons
+    if vid_type == 'n': #this means that a recorded video is playing
         title4 = tk.Label(root, text = 'Press "play/pause" to play video')
-    else:
+
+    else: # this means that the livestream is running
         title4 = tk.Label(root, text = 'Livestream is running')
     title4.grid(row=6, column = 1)
     
