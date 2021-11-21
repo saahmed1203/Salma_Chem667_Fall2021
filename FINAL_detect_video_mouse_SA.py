@@ -264,7 +264,7 @@ if ret:
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
         r=int(4+val/4)
         c=int(val%4)
-        if vid_type == 'y' and txt == 'Play/pause video':
+        if vid_type == 'y' and txt == 'Play/pause video': # disables play button if the video is livestream
             tk.Radiobutton(root, text=txt + str('(Disabled)'),padx = 1, variable=v,width=BUTTON_WIDTH,
                            command=doButton,indicatoron=True,value=val,
                            state = 'disabled').grid(row=r,column=c)
