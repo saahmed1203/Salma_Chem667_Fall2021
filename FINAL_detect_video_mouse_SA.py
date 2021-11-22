@@ -5,6 +5,10 @@ Created on Tue Oct 12 12:18:53 2021
 
 @author: salma
 
+v3.1 
+User can choose the csv filename and where they want to save it, 
+but only creates one final file with the updated IDs
+
 v3.0 
 Some buttons were replaced with a scale (scrolling bar)
 
@@ -25,8 +29,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 #################### CSV FILE NAME AND IMAGE RES ##############################
-detectFileName='FINAL_detection_mouselivestream_updatedID.csv'      # output file containing object location, area, aspect ratio for each piceo frame
-temp_name = 'FINAL_raw_mouselivestream_detection.csv' 
+#detectFileName='FINAL_detection_mouselivestream_updatedID.csv'      # output file containing object location, area, aspect ratio for each pico frame
 X_REZ=640; Y_REZ=480;               # viewing resolution
 THICK=1                             # bounding box line thickness 
 BLUR=7                              # object bluring to help detection
@@ -35,8 +38,6 @@ PROCESS_REZ=(X_REZ//2,Y_REZ//2)
     
 ############################ DEFINE VARIABLES ################################
 detectHeader= 'FRAME,ID,X0,Y0,X1,Y1,XC,YC,AREA,AR,ANGLE' 
-#detectHeader= detectHeader.split(',')
-#print(detectHeader)
 FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; AREA=8; AR=9; ANGLE=10; MAX_COL=11 # pointers to detection features
 detectArray=np.empty((0,MAX_COL))  # detection features populated with object for each frame
 #detectList = []
@@ -47,7 +48,7 @@ MIN_AREA = 50
 MAX_AREA = 1500
 run = 1         # runs program until user clicks "Exit"
 save = 0        # saves the objects detected to the csv file
-play = False        # pauses and plays video (better for non-livestream)        
+play = True     # plays the video (or lets the livestream run)
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 
@@ -113,8 +114,6 @@ def frame_processing(): # function to process a single frame
                 detectArray=np.append(detectArray,parm,axis=0) 
                 #print('Object #',objCount,'saved!')
                 objCount+=1                                     # indicate processed an object
-                
-    #print('frame:',frameCount,'objects:',len(contourList),'big objects:',objCount)
     
     # shows results
     cv2.imshow('colorIM', cv2.resize(colorIM,VGA))      # display image
@@ -146,10 +145,10 @@ def dist(point1, point2, point3, point4): #to find distance between objects
     return dist
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
-    global root, slider, slider_2, slider_3,thresh,MIN_AREA,MAX_AREA
-    thresh = int(slider.get())
-    MIN_AREA = int(slider_2.get())
-    MAX_AREA = int(slider_3.get())
+    global root,thresh,MIN_AREA,MAX_AREA
+    thresh = int(slide_var1.get())
+    MIN_AREA = int(slide_var2.get())
+    MAX_AREA = int(slide_var3.get())
     if vid_type == 'y' or vid_type == 'Y':
         textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
     else:
@@ -197,6 +196,15 @@ def scrolling(event):
     frame_processing()
     return
 
+def save_file():
+    global detectFileName, root
+    root = tk.Tk()
+    root.withdraw()
+    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
+                                                defaultextension = '.csv')
+    root.destroy()
+    return
+
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
 WINDOW_SCALE=10         # window size increment
@@ -226,39 +234,45 @@ names = [
 
 doc() #to print the user guide
 
-vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream
-#vid_type = 'n'
-
+# Asks user if they are running a recording video or a livestream
+vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream     
+ 
+ref_num = 0                         # keeps track of frame number (in video)
+frameCount=0                        # keeps track of frame number (in csv)
 opening_video() # opens video
 
 if ret:
-    root = tk.Toplevel()      #root is for button grid
+    root = tk.Toplevel()      #root is for button / slider grid
     v = tk.IntVar()
     v.set(1)
     slide_var1 = tk.DoubleVar()
     slide_var2 = tk.DoubleVar()
     slide_var3 = tk.DoubleVar()
     
-    
     root.title("Detection Functions")
     
     # Here are the sliders
+    
+    #threshold slider
     slider = ttk.Scale(root, from_=0, to=255, orient='horizontal', 
                        length = 200,variable=slide_var1,command=scrolling) #threshold
     slider.grid(row=1,column= 1)
+    slider.set(60)
     title1 = tk.Label(root, text = 'Threshold').grid(row = 1, column =0)
     
+    #minimum area slider
     slider_2 = ttk.Scale(root, from_=0, to=2000, orient='horizontal', 
                         length = 500,variable=slide_var2,command=scrolling) #min area
     slider_2.grid(row=2,column= 1)
+    slider_2.set(50)
     title2 = tk.Label(root, text = 'Minimum Area').grid(row = 2, column = 0)
     
+    #maximum area slider
     slider_3 = ttk.Scale(root, from_=0, to=3000, orient='horizontal', 
                         length = 500,variable=slide_var3,command=scrolling) #max area
     slider_3.grid(row=3,column= 1)
+    slider_3.set(1500)
     title3 = tk.Label(root, text = 'Maximum Area').grid(row = 3, column = 0)
-    
-    updateStatusDisplay()
     
     # Here are the buttons
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
@@ -272,6 +286,7 @@ if ret:
         else:
             tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
                            command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
+            play = False
     
     #label below the buttons
     if vid_type == 'n': #this means that a recorded video is playing
@@ -281,8 +296,7 @@ if ret:
         title4 = tk.Label(root, text = 'Livestream is running')
     title4.grid(row=6, column = 1)
     
-    ref_num = 0                         # keeps track of frame number (in video)
-    frameCount=0                        # keeps track of frame number (in csv)
+    updateStatusDisplay() # status display
 
     try:
         while (cap.isOpened()) and run: # while loop that goes through each frame
@@ -301,10 +315,9 @@ if ret:
 
 else:
     print('Error, no video found...')
+    
 
-#saves data into the csv file
-print('Done with livestream. Saving raw feature file and exiting program')
-np.savetxt(temp_name,detectArray,header=detectHeader,delimiter=',', fmt = '%d') # original csv
+print('Done with video. Saving raw feature file and exiting program')
 
 ################ tracking the objects to update their IDs ######################
 print(' ')
@@ -349,8 +362,13 @@ for i in range(maxFrames-1): #to prevent frames from being repeated
             data[ind_counter,ID] = dist_list[0][0] #the object associated with the shortest distance
 
 #creating the new csv file
-np.savetxt(detectFileName, data, fmt= '%d', header = detectHeader, delimiter = ',')
-print(' ')
-print('File with updated IDs was created successfully!')
+save_file()
+try:
+    np.savetxt(detectFileName, data, fmt= '%d', header = detectHeader, delimiter = ',')
+    print(' ')
+    print('File with updated IDs was created successfully!')
+    
+except FileNotFoundError:
+    print('No file name input, CSV file was not saved...')
 print('bye!')               # tell the user program has ended
 
