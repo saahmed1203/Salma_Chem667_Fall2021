@@ -65,7 +65,7 @@ def getAR(obj):
 
 def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename
-    if vid_type == 'y' or vid_type == 'Y':
+    if vid_type == 'y':
         cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
     else: #put file manager stuff here
         file_man = tk.Tk()
@@ -84,11 +84,11 @@ def opening_video(): # function to open video
     #return
 
 def frame_processing(): # function to process a single frame
-    global detectArray, colorIM, binaryIM, vid_frame, ref_num, frameCount
+    global detectArray, colorIM, binaryIM, ref_num, frameCount
+    
+    #calls a single frame
     cap.set(1, ref_num)
     testIM = cap.read()[1].astype(np.uint8) #a single frame
-    
-    #while(cap.isOpened() and run):    # process each frame until end of video or 'q' key is pressed
     
     # blur and threshold image
     colorIM=cv2.resize(testIM,PROCESS_REZ)
@@ -112,7 +112,6 @@ def frame_processing(): # function to process a single frame
                 # save object parameters in detectArray in format FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; CLASS=8; AREA=9; AR=10; ANGLE=11; MAX_COL=12
                 parm = np.array([[frameCount,objCount,x0,y0,x1,y1,xc,yc,area,ar,angle]]) # create parameter vector (1 x MAX_COL) 
                 detectArray=np.append(detectArray,parm,axis=0) 
-                #print('Object #',objCount,'saved!')
                 objCount+=1                                     # indicate processed an object
     
     # shows results
@@ -123,17 +122,9 @@ def frame_processing(): # function to process a single frame
     if play:
         ref_num += 1
         if save:
-            #print('saving here...')
             frameCount +=1
-    #cv2.waitKey(0) #waits for user to close windows
-    return
 
-
-#the main detection script (now split into two functions)
-def mainDetection():
-    opening_video()
-    frame_processing()
-    return         
+    return        
 
 def dist(point1, point2, point3, point4): #to find distance between objects
     x1 = float(point1)

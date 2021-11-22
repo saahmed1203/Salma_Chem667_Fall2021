@@ -263,7 +263,7 @@ if pic is not None:
     
     root_2.mainloop() #program will keep waiting until a button has been pressed
     cv2.destroyAllWindows()     # clean up to end program
-    print('Done with images.') #once the program ends
+    print('Done with images.')  # once the program ends
     
     #asks for detectFileName (using file dialog box)
     save_file()
