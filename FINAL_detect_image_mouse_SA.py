@@ -5,6 +5,9 @@ Created on Tue Oct 12 12:18:53 2021
 
 @author: salma
 
+v4.1
+User can choose the csv filename and where they want to save it
+
 v4.0
 Some buttons were replaced with a scale (scrolling bar)
 
@@ -29,7 +32,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 #################### CSV FILE NAME AND IMAGE RES ##############################
-detectFileName='FINAL_detection_image_mouse.csv'      # output file containing object location, area, aspect ratio for each piceo frame
+
 X_REZ=640; Y_REZ=480;               # viewing resolution
 THICK=1                             # bounding box line thickness
 BLUR=7                              # object bluring to help detection
@@ -171,9 +174,19 @@ def doButton(): #determines functions of each button
     mainDetection() #detect script
     return
 
-def scrolling(event):
+def scrolling(event):  # functions for the scrolling bars
     updateStatusDisplay()
     mainDetection()
+    return
+
+def save_file():
+    global detectFileName
+    root = tk.Tk()
+    root.withdraw()
+    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
+                                                defaultextension = '.csv')
+    print('detectFileName',detectFileName)
+    root.destroy()
     return
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
@@ -213,8 +226,7 @@ if pic is not None:
     slide_var1 = tk.DoubleVar()
     slide_var2 = tk.DoubleVar()
     slide_var3 = tk.DoubleVar()
-    
-    
+
     root_2.title("Detection Functions")
     
     # Here are the sliders
@@ -222,15 +234,18 @@ if pic is not None:
                        length = 200,variable=slide_var1,command=scrolling) #threshold
     slider.grid(row=1,column= 1)
     title1 = tk.Label(root_2, text = 'Threshold').grid(row = 1, column =0)
+    slider.set(60)
     
     slider_2 = ttk.Scale(root_2, from_=0, to=2000, orient='horizontal', 
                         length = 500,variable=slide_var2,command=scrolling) #min area
     slider_2.grid(row=2,column= 1)
+    slider_2.set(50)
     title2 = tk.Label(root_2, text = 'Minimum Area').grid(row = 2, column = 0)
     
     slider_3 = ttk.Scale(root_2, from_=0, to=3000, orient='horizontal', 
                         length = 500,variable=slide_var3,command=scrolling) #max area
     slider_3.grid(row=3,column= 1)
+    slider_3.set(1500)
     title3 = tk.Label(root_2, text = 'Maximum Area').grid(row = 3, column = 0)
     
     updateStatusDisplay()
@@ -250,10 +265,15 @@ if pic is not None:
     cv2.destroyAllWindows()     # clean up to end program
     print('Done with images.') #once the program ends
     
-    #saves data into the csv file
-    print('Saving data to CSV file ...')
-    detectDF = pd.DataFrame(detectList, columns = detectHeader)
-    detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
+    #asks for detectFileName (using file dialog box)
+    save_file()
+    try:
+        #saves data into the csv file
+        print('Saving data to CSV file ...')
+        detectDF = pd.DataFrame(detectList, columns = detectHeader)
+        detectDF.to_csv(detectFileName, columns = detectHeader,header = True)
+    except FileNotFoundError:
+        print('No file name input, CSV file was not saved...')
 
 else:
     print('Canceling detection...')
