@@ -29,7 +29,6 @@ import warnings
 
 warnings.filterwarnings('ignore')
 #################### CSV FILE NAME AND IMAGE RES ##############################
-#detectFileName='FINAL_detection_mouselivestream_updatedID.csv'      # output file containing object location, area, aspect ratio for each pico frame
 X_REZ=640; Y_REZ=480;               # viewing resolution
 THICK=1                             # bounding box line thickness 
 BLUR=7                              # object bluring to help detection
@@ -65,10 +64,13 @@ def getAR(obj):
 
 def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename
-    if vid_type == 'y':
-        cap = cv2.VideoCapture(0)           # start video file reader (currently livestream)
-    else: #put file manager stuff here
+    
+    if vid_type == 'y':                     # if user chooses livestream
+        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope)
+        
+    elif vid_type == 'n':                   # if user chooses a recorded video
         file_man = tk.Tk()
+        file_man.title('FM1')
         file_man.withdraw()
         file = filedialog.askopenfilename()
         filename = file.split('/')
@@ -79,9 +81,12 @@ def opening_video(): # function to open video
             print('Must be an mp4/video file')
             print()
             return
+    else:
+        print('An error occured, exiting program ...')
+        return 'ERROR'
     cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
     ret, vid_frame = cap.read()
-    #return
+    return
 
 def frame_processing(): # function to process a single frame
     global detectArray, colorIM, binaryIM, ref_num, frameCount
@@ -140,7 +145,7 @@ def updateStatusDisplay(): #what goes on the status bar on top of the screen
     thresh = int(slide_var1.get())
     MIN_AREA = int(slide_var2.get())
     MAX_AREA = int(slide_var3.get())
-    if vid_type == 'y' or vid_type == 'Y':
+    if vid_type == 'y':
         textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
     else:
         textOut='   Video name=' + str(filename)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   '
@@ -181,20 +186,58 @@ def doButton(): #determines functions of each button
     frame_processing()      # detect script (single frame)
     return
 
-#function for scrolling
-def scrolling(event):
+def scrolling(event): #function for scrolling
     updateStatusDisplay()
     frame_processing()
     return
 
-def save_file():
+def save_file(): #function to have user save the csv with the desired filename
     global detectFileName, root
     root = tk.Tk()
+    root.title('FM2')
     root.withdraw()
     detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
                                                 defaultextension = '.csv')
     root.destroy()
     return
+
+def livestream_question(): #creates a widget that asks the user which video type they want
+    global answer
+    question= tk.Tk()
+    question.title('Choose a Video Format')
+    #question.geometry('300x200')
+    label = tk.Label(question,text='Choose the video type to detect objects')
+    label.grid(row = 0)
+    
+    answer = ''             # answer if the user wants to use the livestream or not
+    
+    def live_answer():
+        global answer
+        answer = 'y'
+        question.withdraw()
+        #question.destroy()
+        return
+    
+    def rec_answer():
+        global answer
+        answer = 'n'
+        question.withdraw()
+        #question.destroy()
+        return
+    
+    #making the buttons
+    livestream = tk.Button(question, text = 'Livestream', command = live_answer,
+                           width = BUTTON_WIDTH)
+    recorded = tk.Button(question,text = 'Recorded Video', command = rec_answer,
+                         width = BUTTON_WIDTH)
+    livestream.grid(row = 1)
+    recorded.grid(row = 2)
+    
+    while answer == '':
+        question.update_idletasks()
+        question.update()
+        
+    return answer
 
 ############################# GLOBAL VAR FOR MOUSE ###########################
 BUTTON_WIDTH=20         # button display width
@@ -226,13 +269,15 @@ names = [
 doc() #to print the user guide
 
 # Asks user if they are running a recording video or a livestream
-vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream     
+#vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream 
+
+vid_type = livestream_question()   
  
 ref_num = 0                         # keeps track of frame number (in video)
 frameCount=0                        # keeps track of frame number (in csv)
 opening_video() # opens video
 
-if ret:
+if ret or opening_video != 'ERROR':
     root = tk.Toplevel()      #root is for button / slider grid
     v = tk.IntVar()
     v.set(1)
@@ -303,12 +348,11 @@ if ret:
         print('video closed')
     except:
         pass
+    print('Done with video. Saving raw feature file and exiting program')
 
 else:
     print('Error, no video found...')
     
-
-print('Done with video. Saving raw feature file and exiting program')
 
 ################ tracking the objects to update their IDs ######################
 print(' ')
