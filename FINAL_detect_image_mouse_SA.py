@@ -59,9 +59,16 @@ save = 0        # saves the objects detected to the csv file
 def getImage():
     global root, file
     root = tk.Tk()
-    root.withdraw()
+    
+    #widget with welcome message
+    root.title('Start program')
+    label = tk.Label(root, text = welcome_message, justify = 'left')
+    label.pack()
+    cv2.waitKey(1000)
     file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
     #print('File chosen:',file)
+    root.withdraw()
+    
     try:
         image = cv2.imread(file)
         return image
@@ -130,10 +137,10 @@ def mainDetection():
     return         
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
-    global root_2, slider, slider_2, slider_3,thresh,MIN_AREA,MAX_AREA
-    thresh = int(slider.get())
-    MIN_AREA = int(slider_2.get())
-    MAX_AREA = int(slider_3.get())
+    global root_2,thresh,MIN_AREA,MAX_AREA
+    thresh = int(slide_var1.get())
+    MIN_AREA = int(slide_var2.get())
+    MAX_AREA = int(slide_var3.get())
     textOut='   Image name='+ str(csv_image_name(file)) + '    Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+'   '
     tk.Label(root_2, text=textOut,bg="pink",justify = tk.LEFT).grid(row=0,column=0,columnspan=4)
     
@@ -185,7 +192,6 @@ def save_file():
     root.withdraw()
     detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
                                                 defaultextension = '.csv')
-    print('detectFileName',detectFileName)
     root.destroy()
     return
 
@@ -212,6 +218,16 @@ names = [
     ("Next Image"),
     ("Exit"), 
 ]
+
+welcome_message = '''
+                                                          MICROSCOPE UI
+                            Author: Salma Ahmed         CHEM 667        Fall 2021
+
+Welcome! This GUI uses the detect program (created by Tom Zimmerman) to detect 
+objects in an image.
+
+Choose an image in the file manager to get started!
+'''
 
 ################################## MAIN #####################################
 
@@ -254,7 +270,9 @@ if pic is not None:
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
         r=int(4+val/4)
         c=int(val%4)
-        tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
+        tk.Radiobutton(root_2, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
+                       activebackground = 'pink',command=doButton,indicatoron=True,
+                       value=val).grid(row=r,column=c)
     
     title4 = tk.Label(root_2, text = ' ')
     title4.grid(row=6, column = 1)
