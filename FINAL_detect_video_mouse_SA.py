@@ -66,7 +66,7 @@ def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename
     
     if vid_type == 'y':                     # if user chooses livestream
-        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope)
+        cap = cv2.VideoCapture(1)           # start livestream (will set it to be 1 for microscope)
         
     elif vid_type == 'n':                   # if user chooses a recorded video
         file_man = tk.Tk()
@@ -202,12 +202,12 @@ def save_file(): #function to have user save the csv with the desired filename
     return
 
 def livestream_question(): #creates a widget that asks the user which video type they want
-    global answer
+    global answer, welcome_message
     question= tk.Tk()
     question.title('Choose a Video Format')
     #question.geometry('300x200')
+    wel_label = tk.Label(question,text=welcome_message, justify = 'left')
     label = tk.Label(question,text='Choose the video type to detect objects')
-    label.grid(row = 0)
     
     answer = ''             # answer if the user wants to use the livestream or not
     
@@ -227,11 +227,14 @@ def livestream_question(): #creates a widget that asks the user which video type
     
     #making the buttons
     livestream = tk.Button(question, text = 'Livestream', command = live_answer,
-                           width = BUTTON_WIDTH)
+                           width = 50, activebackground = 'cyan')
     recorded = tk.Button(question,text = 'Recorded Video', command = rec_answer,
-                         width = BUTTON_WIDTH)
-    livestream.grid(row = 1)
-    recorded.grid(row = 2)
+                         width = 50, activebackground = 'cyan')
+    
+    wel_label.pack()
+    label.pack()
+    livestream.pack()
+    recorded.pack()
     
     while answer == '':
         question.update_idletasks()
@@ -264,13 +267,20 @@ names = [
     ("Exit"), 
 ]
 
+# welcome message when you first run the program
+welcome_message = '''
+                                                          MICROSCOPE UI
+                            Author: Salma Ahmed         CHEM 667        Fall 2021
+
+Welcome! This GUI uses the detect program (created by Tom Zimmerman) to detect 
+objects in a video, whether it be a livestream or a recorded video.
+'''
+
 ##################################### MAIN #####################################
 
 doc() #to print the user guide
 
 # Asks user if they are running a recording video or a livestream
-#vid_type = input('Do you want to do livestream? Type y or n: ') #asks user if they want to do a livestream 
-
 vid_type = livestream_question()   
  
 ref_num = 0                         # keeps track of frame number (in video)
@@ -321,7 +331,8 @@ if ret or opening_video != 'ERROR':
             play = True
         else:
             tk.Radiobutton(root, text=txt,padx = 1, variable=v,width=BUTTON_WIDTH,
-                           command=doButton,indicatoron=True,value=val).grid(row=r,column=c)
+                           command=doButton,indicatoron=True,value=val,
+                           activebackground = 'cyan').grid(row=r,column=c)
             play = False
     
     #label below the buttons
