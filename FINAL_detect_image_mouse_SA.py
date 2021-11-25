@@ -54,20 +54,22 @@ detectList = []
 #MAX_AREA = 1500
 skip_im = 1     # goes to the next image (the word "next" is already a keyword)
 save = 0        # saves the objects detected to the csv file
+show_welcome_wid = True
 
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 def getImage():
     global root, file
     root = tk.Tk()
-    
     #widget with welcome message
     root.title('Start program')
     label = tk.Label(root, text = welcome_message, justify = 'left')
     label.pack()
+    if show_welcome_wid == False:
+        root.withdraw()
     cv2.waitKey(1000)
     file = filedialog.askopenfilename() #the file you choose is in the form of the pathway string
-    #print('File chosen:',file)
-    root.withdraw()
+    if show_welcome_wid == True:
+        root.withdraw()
     
     try:
         image = cv2.imread(file)
@@ -146,7 +148,7 @@ def updateStatusDisplay(): #what goes on the status bar on top of the screen
     
 
 def doButton(): #determines functions of each button
-    global thresh, MIN_AREA, MAX_AREA, skip_im, save
+    global thresh, MIN_AREA, MAX_AREA, skip_im, save, show_welcome_wid, pic
    
     val=v.get()
     but=names[val]
@@ -156,7 +158,7 @@ def doButton(): #determines functions of each button
         #skip_im = 0     # this flag stops detecting the current image to move on to the next one
         title4['text'] = ' '
         cv2.destroyAllWindows()
-        global pic
+        show_welcome_wid = False
         pic = getImage()
         if pic is None:
             print('Canceling detection...')
@@ -190,7 +192,7 @@ def save_file():
     global detectFileName
     root = tk.Tk()
     root.withdraw()
-    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
+    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv'), ('text file','.txt')], 
                                                 defaultextension = '.csv')
     root.destroy()
     return

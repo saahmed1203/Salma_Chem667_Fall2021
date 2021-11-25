@@ -66,7 +66,7 @@ def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename
     
     if vid_type == 'y':                     # if user chooses livestream
-        cap = cv2.VideoCapture(1)           # start livestream (will set it to be 1 for microscope)
+        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope)
         
     elif vid_type == 'n':                   # if user chooses a recorded video
         file_man = tk.Tk()
@@ -93,7 +93,7 @@ def frame_processing(): # function to process a single frame
     
     #calls a single frame
     cap.set(1, ref_num)
-    testIM = cap.read()[1].astype(np.uint8) #a single frame
+    testIM = cap.read()[1].astype(np.uint8)             # a single frame
     
     # blur and threshold image
     colorIM=cv2.resize(testIM,PROCESS_REZ)
@@ -196,7 +196,7 @@ def save_file(): #function to have user save the csv with the desired filename
     root = tk.Tk()
     root.title('FM2')
     root.withdraw()
-    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv')], 
+    detectFileName=filedialog.asksaveasfilename(filetypes = [('comma-separated values (CSV)','.csv'), ('text file','.txt')], 
                                                 defaultextension = '.csv')
     root.destroy()
     return
