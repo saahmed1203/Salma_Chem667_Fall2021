@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Detect script but for images
+Detect script but for video (both recorded and livestream)
 Created on Tue Oct 12 12:18:53 2021
 
 @author: salma
