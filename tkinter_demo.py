@@ -74,7 +74,7 @@ button = tk.Button(second_root, text = 'Add +1', command = addFunction) #the "Ad
 new_wind_button = tk.Button(second_root, text = 'Open new window', command = open_3rd_window) #the "Add +1" button
 exit_button = tk.Button(second_root,text = 'Exit', fg = 'coral',command = quitProgram) #the "Exit" button
 
-#to put all of the buttons and labels in the window
+#to put all of the buttons and labels in the window (instead of using pack, you can use grid and specify the row and column number)
 main_label.pack()
 button.pack()
 new_wind_button.pack()
