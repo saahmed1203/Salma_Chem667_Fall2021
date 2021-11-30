@@ -66,7 +66,7 @@ def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename
     
     if vid_type == 'y':                     # if user chooses livestream
-        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope)
+        cap = cv2.VideoCapture(1)           # start livestream (will set it to be 1 for microscope)
         
     elif vid_type == 'n':                   # if user chooses a recorded video
         file_man = tk.Tk()
