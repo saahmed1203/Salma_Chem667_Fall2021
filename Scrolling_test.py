@@ -34,6 +34,7 @@ slider_2 = ttk.Scale(root, from_=0, to=100, orient='vertical',
 
 label_2 = tk.Label(root,text='Current value: ' + str(int(sec_var.get())))
 
+#puts all of the sliders and labels in the window
 slider.pack()
 label.pack()
 slider_2.pack()
