@@ -72,7 +72,7 @@ def opening_video(): # function to open video
         file_man = tk.Tk()
         file_man.title('FM1')
         file_man.withdraw()
-        file = filedialog.askopenfilename()
+        file = filedialog.askopenfilename(filetypes = [('all files', '*.*')])
         filename = file.split('/')
         filename = filename[-1]
         try:
