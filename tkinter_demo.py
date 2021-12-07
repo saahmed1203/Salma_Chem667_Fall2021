@@ -2,6 +2,9 @@
 """
 Tkinter module demo (file manager root, and having multiple roots)
 
+Link for other functions besides buttons:
+https://www.pythontutorial.net/tkinter/tkinter-ttk/ 
+
 Created on Wed Nov  3 13:14:43 2021
 
 @author: salma
@@ -13,7 +16,7 @@ import cv2
 
 ########################## DEFINING BUTTON FUNCTIONS ###########################
 x = 0
-def addFunction():          # defining button functions (the Add +1 button)
+def addFunction():        # defining button functions (the Add +1 button)
     global x, main_label
     x += 1
     main_label['text'] = 'X Value = ' + str(x) # to update the window label
@@ -24,7 +27,7 @@ def close_3rd_window():   # defining the button to close the third window
     third_root.quit()
     return
 
-def open_3rd_window():   # defining the button to open a third window (from the second window)
+def open_3rd_window():    # defining the button to open a third window (from the second window)
     global third_root
     
     #to create a third window (on top of the second one)
@@ -52,13 +55,13 @@ def quitProgram():          # defining the exit button (for the second window)
 # Creating a single root (file manager example)
 root = tk.Tk()              # this creates a widget
 root.withdraw()             # this hides the widget once it's created (but it's still active!)
-file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
-print()
-print('File pathway:', file)
+#file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
+#print()
+#print('File pathway:', file)
 
 #to view file
-cv2.imshow('Image chosen:',cv2.imread(file))
-cv2.waitKey(0)
+#cv2.imshow('Image chosen:',cv2.imread(file))
+#cv2.waitKey(0)
 
 #'''
 #creating a second window
@@ -74,7 +77,7 @@ button = tk.Button(second_root, text = 'Add +1', command = addFunction) #the "Ad
 new_wind_button = tk.Button(second_root, text = 'Open new window', command = open_3rd_window) #the "Add +1" button
 exit_button = tk.Button(second_root,text = 'Exit', fg = 'coral',command = quitProgram) #the "Exit" button
 
-#to put all of the buttons and labels in the window (instead of using pack, you can use grid and specify the row and column number)
+#to put all of the buttons and labels in the window
 main_label.pack()
 button.pack()
 new_wind_button.pack()
