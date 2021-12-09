@@ -55,7 +55,7 @@ for val, txt in enumerate(button_names): #goes through each button (and what the
     r=int(4+val/2)
     c=int(val%2)
     tk.Radiobutton(root, text=txt,padx = 1, variable=but_val,
-                   command=button_stuff,indicatoron=True,value=val).grid(row=r,column=c)
+                   command=button_stuff,indicatoron=False,value=val).grid(row=r,column=c)
     
 label_3 = tk.Label(root,text = '')
 label_3.grid(row=5)
