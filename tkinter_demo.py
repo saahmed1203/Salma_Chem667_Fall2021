@@ -12,7 +12,6 @@ Created on Wed Nov  3 13:14:43 2021
 
 import tkinter as tk
 from tkinter import filedialog
-import cv2
 
 ########################## DEFINING BUTTON FUNCTIONS ###########################
 x = 0
@@ -55,15 +54,13 @@ def quitProgram():          # defining the exit button (for the second window)
 # Creating a single root (file manager example)
 root = tk.Tk()              # this creates a widget
 root.withdraw()             # this hides the widget once it's created (but it's still active!)
-#file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
-#print()
-#print('File pathway:', file)
 
-#to view file
-#cv2.imshow('Image chosen:',cv2.imread(file))
-#cv2.waitKey(0)
+#note: file manager only works on Windows and Linux
+file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
+print()
+print('File pathway:', file)
 
-#'''
+
 #creating a second window
 second_root = tk.Toplevel()     # this creates a second widget on top of the "root"
 second_root.title('Second Window')  # window title
@@ -84,7 +81,6 @@ new_wind_button.pack()
 exit_button.pack()
 
 second_root.mainloop() #to loop in the button panel until the user exits
-#'''
 
 print('Exiting program...')
 print('Bye!')
