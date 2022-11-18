@@ -11,7 +11,6 @@ from tkinter import filedialog
 root = tk.Tk()              # this creates a widget
 root.withdraw()             # this hides the widget once it's created (but it's still active!)
 
-#note: file manager only works on Windows and Linux
 file = filedialog.askopenfilename()     # creates the file manager window (using the root widget)
 print()
 print('File pathway:', file)
