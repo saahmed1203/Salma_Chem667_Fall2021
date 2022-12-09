@@ -44,7 +44,6 @@ PROCESS_REZ=(X_REZ//2,Y_REZ//2)
 detectHeader= 'FRAME,ID,X0,Y0,X1,Y1,XC,YC,AREA,AR,ANGLE' 
 FRAME=0; ID=1;  X0=2;   Y0=3;   X1=4;   Y1=5;   XC=6;   YC=7; AREA=8; AR=9; ANGLE=10; MAX_COL=11 # pointers to detection features
 detectArray=np.empty((0,MAX_COL))  # detection features populated with object for each frame
-#detectList = []
 
 #variables associated with buttons (originally with keystrokes) and the starting values
 thresh = 60
@@ -62,24 +61,27 @@ def getMedian(vid,medianFrames,TINY_REZ):
     # Open Video
     print ('openVideo:',vid)
     cap = cv2.VideoCapture(vid)
+    cap.set(3, 1280); cap.set(4, 720);  # set to 720p resolution (1920,1080 for 1080p)
     maxFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print('maxFrame',maxFrame)
+    print('maxFrame',maxFrame) 
      
     # Randomly select N frames
-    skipFrames = 100
+    skipFrames = 50
     print('calculating median for background subtraction...')
-    frameIds = skipFrames+ (maxFrame-skipFrames) * np.random.uniform(size=medianFrames)
+    frameIds = skipFrames + (maxFrame-skipFrames) * np.random.uniform(size=medianFrames)
+    print('Frame ID list',frameIds)
     frames = [] # Store selected frames in an array
     for fid in frameIds:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, fid)
-        ret, frame = cap.read()
+        cap.set(cv2.CAP_PROP_POS_FRAMES, fid//1)
+        ret, frame = cap.read()                           # some frames can't be read for some reason
+        print('ret:',ret, '; frame ID',fid//1)
         colorIM=cv2.resize(frame,TINY_REZ)
         grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)
         frames.append(grayIM)
+        
     medianFrame = np.median(frames, axis=0).astype(dtype=np.uint8)     # Calculate the median along the time axis
-     
     cap.release()
-    return(medianFrame)
+    return medianFrame
 
 
 #get objects (contouring)
@@ -97,7 +99,7 @@ def opening_video(): # function to open video
     global cap, ret, vid_frame, file, filename, medianFrame
     
     if vid_type == 'y':                     # if user chooses livestream
-        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope)
+        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope) 
         
     elif vid_type == 'n':                   # if user chooses a recorded video
         file_man = tk.Tk()
@@ -116,7 +118,7 @@ def opening_video(): # function to open video
     else:
         print('An error occured, exiting program ...')
         return 'ERROR'
-    cap.set(3, 1920); cap.set(4, 1080);  # set to 1080p resolution
+    cap.set(3, 1280); cap.set(4, 720);  # set to 1080p resolution
     ret, vid_frame = cap.read()
     return
 
