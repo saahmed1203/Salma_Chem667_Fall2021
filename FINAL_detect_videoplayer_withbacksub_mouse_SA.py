@@ -118,7 +118,7 @@ def opening_video(): # function to open video
     else:
         print('An error occured, exiting program ...')
         return 'ERROR'
-    cap.set(3, 1280); cap.set(4, 720);  # set to 1080p resolution
+    cap.set(3, 1280); cap.set(4, 720);  # set to 720p resolution (1920,1080 for 1080p)
     ret, vid_frame = cap.read()
     return
 
