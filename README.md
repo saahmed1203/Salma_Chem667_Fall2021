@@ -1,7 +1,7 @@
 ## Salma_Chem667_Fall2021
 My project for Chem 667 where I will improve the UI of our Raspberry pi microscope, particularly with the detection script created by Tom Zimmerman.
 
-The scripts labeled "FINAL" are available to use.
+**The scripts labeled "FINAL" are available to use.**
 
 ### How to create Tkinter Widgets
 
