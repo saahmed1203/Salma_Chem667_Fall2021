@@ -5,6 +5,9 @@ Created on Tue Oct 12 12:18:53 2021
 
 @author: salma
 
+v5.1
+Tom Zimmerman fixed a few bugs with counting the frames
+
 v5.0
 Background subtraction was implemented (for recorded video only!)
 
@@ -49,11 +52,11 @@ detectArray=np.empty((0,MAX_COL))  # detection features populated with object fo
 thresh = 60
 MIN_AREA = 50
 MAX_AREA = 1500
-run = 1         # runs program until user clicks "Exit"
 save = 0        # saves the objects detected to the csv file
 play = True     # plays the video (or lets the livestream run)
 back_sub = False
-
+GOOD_VIDEO=0    # set if video file or stream is opened
+EXIT_BUTTON=0   # set when EXIT button pressed to end program
 ########################## DEFINING FUNCTIONS IN ORDER ############################
 
 #get median frame as background
@@ -61,20 +64,21 @@ def getMedian(vid,medianFrames,TINY_REZ):
     # Open Video
     print ('openVideo:',vid)
     cap = cv2.VideoCapture(vid)
-    cap.set(3, 1280); cap.set(4, 720);  # set to 720p resolution (1920,1080 for 1080p)
-    maxFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    #cap.set(3, 1280); cap.set(4, 720);  # set to 720p resolution (1920,1080 for 1080p)
+    maxFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))-1
     print('maxFrame',maxFrame) 
      
     # Randomly select N frames
     skipFrames = 50
     print('calculating median for background subtraction...')
-    frameIds = skipFrames + (maxFrame-skipFrames) * np.random.uniform(size=medianFrames)
-    print('Frame ID list',frameIds)
+    #frameIds = skipFrames + (maxFrame-skipFrames) * np.random.uniform(size=medianFrames)
+    frameIds = np.random.randint(skipFrames,maxFrame,medianFrames)
+    #print('Frame ID list',frameIds)
     frames = [] # Store selected frames in an array
     for fid in frameIds:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, fid//1)
+        #cap.set(cv2.CAP_PROP_POS_FRAMES, fid//1)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, fid)
         ret, frame = cap.read()                           # some frames can't be read for some reason
-        print('ret:',ret, '; frame ID',fid//1)
         colorIM=cv2.resize(frame,TINY_REZ)
         grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)
         frames.append(grayIM)
@@ -96,45 +100,58 @@ def getAR(obj):
     return(xc,yc,ar,angle)
 
 def opening_video(): # function to open video
-    global cap, ret, vid_frame, file, filename, medianFrame
+    global GOOD_VIDEO
     
-    if vid_type == 'y':                     # if user chooses livestream
-        cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope) 
-        
-    elif vid_type == 'n':                   # if user chooses a recorded video
+    GOOD_VIDEO=0                       # set if video file or livestream open
+    fileName='dummy'                            # give dummy name in case using live streaming
+    if vid_type == 'STREAM':                     # if user chooses livestream
+        try:
+            cap = cv2.VideoCapture(0)           # start livestream (will set it to be 1 for microscope) 
+            GOOD_VIDEO=1
+        except:
+            GOOD_VIDEO=0
+            
+    elif vid_type == 'FILE':                   # if user chooses a recorded video
         file_man = tk.Tk()
         file_man.title('FM1')
         file_man.withdraw()
         file = filedialog.askopenfilename(filetypes = [('all files','*.*')])
-        filename = file.split('/')
-        filename = filename[-1]
+        fileName = file.split('/')
+        fileName = fileName[-1]
         try:
             cap = cv2.VideoCapture(file)
             medianFrame = getMedian(file,25,PROCESS_REZ)
+            GOOD_VIDEO=1
         except AttributeError:
             print('Must be an mp4/video file')
             print()
-            return
-    else:
-        print('An error occured, exiting program ...')
-        return 'ERROR'
-    cap.set(3, 1280); cap.set(4, 720);  # set to 720p resolution (1920,1080 for 1080p)
-    ret, vid_frame = cap.read()
-    return
+            GOOD_VIDEO=0
+    
+    return(cap,GOOD_VIDEO,medianFrame,fileName)
 
 
 def frame_processing(): # function to process a single frame
-    global detectArray, colorIM, binaryIM, ref_num, frameCount, medianFrame, vid_type
+    global detectArray, colorIM, binaryIM, frame_slider, frameCount, medianFrame, vid_type, GOOD_VIDEO, play
     
     #calls a single frame
-    cap.set(1, ref_num)
-    testIM = cap.read()[1].astype(np.uint8)             # a single frame
+    cap.set(1, frame_slider)
+    ret, testIM = cap.read()             # a single frame
+    
+    if ret==0:
+        #GOOD_VIDEO=0   if you want to end program when playing video is done
+        #return
+        frame_slider=0
+        cap.set(1, frame_slider)
+        ret, testIM = cap.read()             # read a single frame
+        play=False                         # stop play
+        #SALMA add code here to unpress the play button!            
+        
     
     # blur and threshold image
     colorIM=cv2.resize(testIM,PROCESS_REZ)
     grayIM = cv2.cvtColor(colorIM, cv2.COLOR_BGR2GRAY)  # convert color to grayscale image    
     
-    if vid_type == 'n':
+    if vid_type == 'FILE':
         diffIM = cv2.absdiff(grayIM, medianFrame)   # Calculate absolute difference of current frame and the median frame 
         if back_sub: #if background subtraction is on
             blurIM = cv2.blur(diffIM,(BLUR,BLUR))
@@ -144,7 +161,7 @@ def frame_processing(): # function to process a single frame
             diffIM = grayIM       # so that the display window stays open but without the background subtraction
             ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
             
-    elif vid_type == 'y':
+    elif vid_type == 'STREAM':
         blurIM = cv2.medianBlur(grayIM,BLUR)                  # blur image to fill in holes to make solid object
         diffIM = grayIM       # so that the display window stays open but without the background subtraction
         ret,binaryIM = cv2.threshold(blurIM,thresh,255,cv2.THRESH_BINARY_INV) # threshold image to make pixels 0 or 255
@@ -175,10 +192,10 @@ def frame_processing(): # function to process a single frame
     cv2.waitKey(1)
     
     if play:
-        ref_num += 1
+        frame_slider += 1
         if save:
             frameCount +=1
-    return        
+    return       
 
 def dist(point1, point2, point3, point4): #to find distance between objects
     x1 = float(point1)
@@ -190,24 +207,24 @@ def dist(point1, point2, point3, point4): #to find distance between objects
     return dist
 
 def updateStatusDisplay(): #what goes on the status bar on top of the screen
-    global root,thresh,MIN_AREA,MAX_AREA, ref_num, big_label
+    global root,thresh,MIN_AREA,MAX_AREA, frame_slider, big_label
     thresh = int(slide_var1.get())
     MIN_AREA = int(slide_var2.get())
     MAX_AREA = int(slide_var3.get())
-    ref_num = int(slide_var4.get())
-    if vid_type == 'y':
+    frame_slider = int(slide_var4.get())
+    if vid_type == 'STREAM':
         textOut='   Video name= Livestream        Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)
     else:
-        textOut='   Video name=' + str(filename)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   Frame Number: ' + str(ref_num)
+        textOut='   Video name=' + str(fileName)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   Frame Number: ' + str(frame_slider)
     big_label = tk.Label(root, text=textOut,bg="cyan",justify = tk.LEFT).grid(row=0,column=0,columnspan=5)
 
 def play_bar(event): # play bar function (so the user can skip through the video)
-    global ref_num,frameCount
-    ref_num = int(slide_var4.get()) 
-    frameCount = ref_num
+    global frame_slider,frameCount
+    frame_slider = int(slide_var4.get()) 
+    frameCount = frame_slider
 
 def doButton(): #determines functions of each button
-    global thresh, MIN_AREA, MAX_AREA, skip_im, save, run, play, back_sub
+    global thresh, MIN_AREA, MAX_AREA, skip_im, save, EXIT_BUTTON, play, back_sub
    
     val=v.get()
     but=names[val]
@@ -215,13 +232,13 @@ def doButton(): #determines functions of each button
     if 'Stop Detecting' in but:
         save = 0
         title4['text'] = 'Stopped Detection'
-        print('save is:',save,'play is:',play, 'run is:',run)
+        #print('save is:',save,'play is:',play, 'EXIT_BUTTON is:',EXIT_BUTTON)
         
     elif 'Start Detecting' in but:
         #print('Started Detection')
         save = 1        # this flag saves the objects to the csv file
         title4['text'] = 'Started Detection'
-        print('save is:',save,'play is:',play, 'run is:',run)
+        #print('save is:',save,'play is:',play, 'EXIT_BUTTON is:',EXIT_BUTTON)
     
     if "Play/pause video" in but:
         play = not play
@@ -231,10 +248,10 @@ def doButton(): #determines functions of each button
             title4['text'] = ' '
         
     elif 'Exit' in but:
-        run = 0             # quits livestream
-        cap.release()
-        cv2.destroyAllWindows()
-        root.withdraw()
+        EXIT_BUTTON = 1             # quits livestream
+        #cap.release()
+        #cv2.destroyAllWindows()
+        #root.withdraw()
         return
     
     updateStatusDisplay()
@@ -277,16 +294,14 @@ def livestream_question(): #creates a widget that asks the user which video type
     
     def live_answer():
         global answer
-        answer = 'y'
+        answer = 'STREAM'
         question.withdraw()
-        #question.destroy()
         return
     
     def rec_answer():
         global answer
-        answer = 'n'
+        answer = 'FILE'
         question.withdraw()
-        #question.destroy()
         return
     
     #making the buttons
@@ -352,14 +367,14 @@ doc() #to print the user guide
 # Asks user if they are running a recording video or a livestream
 vid_type = livestream_question()   
  
-ref_num = 0                         # keeps track of frame number (in video)
+frame_slider = 0                         # keeps track of frame number (in video)
 frameCount=0                        # keeps track of frame number (in csv)
-opening_video() # opens video
+cap,GOOD_VIDEO,medianFrame,fileName=opening_video() # opens video
 
 player_style = ttk.Style()
 player_style.configure('Horizontal.TScale', activebackground = 'orange') # give play bar a different color
 
-if ret or opening_video != 'ERROR':
+if GOOD_VIDEO:
     root = tk.Toplevel()      # root is for button / slider grid
     v = tk.IntVar()
     v.set(1)
@@ -372,6 +387,7 @@ if ret or opening_video != 'ERROR':
     
     # gets the total number of frames in the video
     vid_length= int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    vid_length= int(cap.get(cv2.CAP_PROP_FRAME_COUNT))-1
     print('total frames:',vid_length)
     
     # Here are the sliders
@@ -382,9 +398,7 @@ if ret or opening_video != 'ERROR':
     slider.grid(row=1,column= 1)
     slider.set(60)
     title1 = tk.Label(root, text = 'Threshold').grid(row = 1, column =0)
-    #title1 = tk.Label(root, text = 'Threshold (disabled').grid(row = 1, column =0)
-    #slider['state'] = 'disabled'
-    
+
     #minimum area slider
     slider_2 = ttk.Scale(root, from_=0, to=2000, orient='horizontal', 
                         length = 500,variable=slide_var2,command=scrolling) #min area
@@ -404,19 +418,18 @@ if ret or opening_video != 'ERROR':
                        length = 500,variable=slide_var4, style= 'Horizontal.TScale',
                        command=play_bar)
     slider_4.grid(row=4, column = 1)
-    slider_4.set(ref_num)
+    slider_4.set(frame_slider)
     title5 = tk.Label(root, text = 'Video Progress')
     title5.grid(row = 4, column = 0)
-    if vid_type == 'y':
+    if vid_type == 'STREAM':
         slider_4['state'] = 'disabled'
         title5.configure(text = 'Video Progress (disabled)')
-    
     
     # Here are the buttons
     for val, txt in enumerate(names): #goes through each button (and what they'd look like)
         r=int(5+val/5)
         c=int(val%5)
-        if vid_type == 'y' and txt == 'Play/pause video': # disables play button if the video is livestream
+        if vid_type == 'STREAM' and txt == 'Play/pause video': # disables play button if the video is livestream
             tk.Radiobutton(root, text=txt + str('(Disabled)'),padx = 1, variable=v,width=BUTTON_WIDTH,
                            command=doButton,indicatoron=True,value=val,
                            state = 'disabled').grid(row=r,column=c)
@@ -428,7 +441,7 @@ if ret or opening_video != 'ERROR':
     
     
     #label below the buttons
-    if vid_type == 'n': #this means that a recorded video is playing
+    if vid_type == 'FILE': #this means that a recorded video is playing
         title4 = tk.Label(root, text = 'Press "play/pause" to play video')
         play = False
         
@@ -443,29 +456,24 @@ if ret or opening_video != 'ERROR':
     
     updateStatusDisplay() # status display
 
-    try:
-        while (cap.isOpened()) and run: # while loop that goes through each frame
-            frame_processing()          # detect script of a single frame
-            if vid_type == 'n':
-                slide_var4.set(ref_num)     # update the slider to be current frame value
-                textOut='   Video name=' + str(filename)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   Frame Number: ' + str(int(slide_var4.get()))
-                big_label = tk.Label(root, text=textOut,bg="cyan",justify = tk.LEFT).grid(row=0,column=0,columnspan=5)
-            root.update()
-    except:
-        pass
-    
-    try:
-        cap.release()
-        root.withdraw()
-        cv2.destroyAllWindows()             # clean up to end program
-        print('video closed')
-    except:
-        pass
-    print('Done with video. Saving raw feature file and exiting program')
 
-else:
-    print('Error, no video found...')
-    
+    while GOOD_VIDEO==1 and EXIT_BUTTON==0: # while loop that goes through each frame
+        frame_processing()          # detect script of a single frame, sets GOOD_VIDEO=0 when no more frames to read
+        if vid_type == 'FILE':
+            slide_var4.set(frame_slider)     # update the slider to be current frame value
+            textOut='   Video name=' + str(fileName)+'       Threshold=' + str(thresh) + '    Min Area=' + str(MIN_AREA) + '    Max Area=' + str(MAX_AREA)+ '   Frame Number: ' + str(int(slide_var4.get()))
+            big_label = tk.Label(root, text=textOut,bg="cyan",justify = tk.LEFT).grid(row=0,column=0,columnspan=5)
+        root.update()
+ 
+    GOOD_VIDEO=0 # end video processing
+
+# end video processing
+cap.release()
+root.withdraw()
+cv2.destroyAllWindows()             # clean up to end program
+print('Video closed, windows destroyed, UI stopped')
+print('Done with video. Saving raw feature file and exiting program')
+
 
 ################ tracking the objects to update their IDs ######################
 print(' ')
@@ -480,11 +488,11 @@ all_IDs = data[:,ID]
 distByFrame = []
 #ind_counter = np.where(data[:,FRAME] == 1)[0][0]
 ind_counter = 0
-print('Reference number:',ref_num)
-maxFrames=len(framed_data)
-print('Total frames saved:',maxFrames)
+print('Frame Slider:',frame_slider)
+maxFrames=len(framed_data)   
+print('Total frames saved:',maxFrames) 
 #for i in range(10): #to test loop
-for i in range(maxFrames-1): #to prevent frames from being repeated
+for i in range(maxFrames-1): ## frames count from 0, so 100 frames goes from 0 to 99, hence -1
     obj_data = np.where(data[:,FRAME] == i) #current frame index
     obj_next_data = np.where(data[:,FRAME] == i + 1) #next frame index
     for item in range(len(obj_data)):
@@ -521,6 +529,6 @@ try:
     
 except FileNotFoundError:
     print('No file name input, CSV file was not saved...')
-    
+      
 print('bye!')               # tell the user program has ended
 
